@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Opisy per marketplace z BASE — darmowy eksport i import (BaseLinker) | MAMS</title>
+<meta name="description" content="BASE (BaseLinker) trzyma osobne nazwy i opisy ofert dla Allegro, Amazon, Kauflandu, eBay czy Temu — ale nie pozwala ich masowo wyeksportować. To darmowe narzędzie pobiera je do Excela per kanał i język, a poprawiony plik wgrywa z powrotem przez API.">
+<meta property="og:title" content="Opisy per marketplace z BASE — darmowy eksport i import">
+<meta property="og:description" content="Wyciągnij nazwy i opisy ofert z BASE dla wybranego marketplace'u i języka do XLSX. Popraw. Wgraj z powrotem. Bez rejestracji, token nie jest zapisywany.">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="pl_PL">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Manrope:wght@700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#0F172A;--ink-soft:#334155;--muted:#64748B;--white:#fff;
+  --surface:#F8FAFC;--surface-2:#F1F5F9;--line:#E2E8F0;
+  --primary:#4F46E5;--primary-700:#4338CA;--primary-50:#EEF2FF;--primary-300:#818CF8;
+  --accent:#7C3AED;--accent-700:#6D28D9;--accent-50:#F5F3FF;--accent-300:#A78BFA;
+  --success:#10B981;--warning:#F59E0B;--danger:#DC2626;
+  --grad:linear-gradient(135deg,#4F46E5 0%,#7C3AED 100%);
+  --grad-soft:linear-gradient(135deg,#EEF2FF 0%,#F5F3FF 100%);
+  --fd:'Manrope','Segoe UI',system-ui,sans-serif;--fb:'Inter',system-ui,sans-serif;
+  --r:14px;--r-lg:22px;--maxw:1120px;
+  --sh-soft:0 1px 2px rgba(15,23,42,.06),0 1px 3px rgba(15,23,42,.05);
+  --sh-card:0 8px 24px rgba(15,23,42,.08);--sh-glow:0 24px 60px rgba(124,58,237,.16);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{font-family:var(--fb);color:var(--ink);background:#fff;line-height:1.6;font-size:17px}
+a{color:var(--primary);text-decoration:none}
+a:hover{text-decoration:underline}
+img{max-width:100%;display:block}
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px}
+section{padding:88px 0}
+.eyebrow{font-size:12px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin-bottom:14px}
+h1{font-family:var(--fd);font-weight:800;font-size:54px;line-height:1.08;letter-spacing:-.03em}
+h2{font-family:var(--fd);font-weight:800;font-size:34px;line-height:1.15;letter-spacing:-.03em;margin-bottom:14px}
+h3{font-family:var(--fd);font-weight:700;font-size:20px;letter-spacing:-.01em;margin-bottom:8px}
+.sub{color:var(--ink-soft);font-size:19px;max-width:640px}
+.lead-sec{color:var(--ink-soft);max-width:680px;margin-bottom:40px}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.92em;background:var(--surface-2);padding:1px 6px;border-radius:6px;color:var(--ink)}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;border-radius:12px;padding:14px 24px;font-weight:600;font-size:16px;cursor:pointer;transition:.15s;font-family:inherit}
+.btn:hover{text-decoration:none}
+.btn-primary{background:var(--accent);color:#fff;box-shadow:0 6px 18px rgba(124,58,237,.28)}
+.btn-primary:hover{background:var(--accent-700);transform:translateY(-1px)}
+.btn-ghost{background:#fff;border:1.5px solid var(--line);color:var(--ink)}
+.btn-ghost:hover{border-color:#c7cbd1}
+.btn-sm{padding:10px 16px;font-size:14px;border-radius:10px}
+
+/* nav */
+.nav{position:sticky;top:0;z-index:30;background:rgba(255,255,255,.86);backdrop-filter:saturate(180%) blur(12px);border-bottom:1px solid var(--line)}
+.nav .wrap{display:flex;align-items:center;gap:28px;height:64px}
+.brand{display:flex;align-items:center;gap:10px;font-family:var(--fd);font-weight:800;font-size:20px;letter-spacing:-.02em;color:var(--ink)}
+.brand:hover{text-decoration:none}
+.brand small{font-family:var(--fb);font-weight:500;color:var(--muted);font-size:13px;letter-spacing:0}
+.links{display:flex;gap:24px;margin-left:auto;font-size:15px;font-weight:500}
+.links a{color:var(--ink-soft)}.links a:hover{color:var(--primary);text-decoration:none}
+
+/* hero */
+.hero{padding:96px 0 72px;background:radial-gradient(1200px 600px at 80% -10%,#EEF2FF 0%,rgba(238,242,255,0) 60%),radial-gradient(800px 500px at 0% 100%,#F5F3FF 0%,rgba(245,243,255,0) 60%)}
+.hero .wrap{display:grid;grid-template-columns:1.1fr .9fr;gap:56px;align-items:center}
+.hero .cta{display:flex;gap:12px;flex-wrap:wrap;margin-top:30px}
+.trust{display:flex;gap:18px;flex-wrap:wrap;margin-top:22px;font-size:14px;color:var(--muted)}
+.trust span::before{content:"✓";color:var(--success);font-weight:700;margin-right:6px}
+.mock{background:#fff;border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--sh-glow);padding:18px;font-size:13px}
+.mock .bar{display:flex;gap:6px;margin-bottom:14px}
+.mock .bar i{width:10px;height:10px;border-radius:50%;background:var(--line);display:block}
+.mock table{width:100%;border-collapse:collapse}
+.mock th,.mock td{padding:7px 9px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top;font-size:12.5px}
+.mock th{background:var(--surface);color:var(--ink-soft);font-weight:600;font-size:11.5px}
+.mock td.c{color:var(--muted);white-space:nowrap}
+.mock .tag{display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:600}
+.mock .tag.m{background:var(--primary-50);color:var(--primary-700)}
+.mock .tag.b{background:#FFFBEB;color:#B45309}
+.mock .tag.l{background:#ECFDF5;color:#047857}
+.mock .title{font-weight:600;color:var(--ink);margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.mock .title .pill{margin-left:auto;background:var(--grad);color:#fff;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:600}
+.mock .desc{color:var(--ink-soft);max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* cards */
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.card{background:#fff;border:1px solid var(--line);border-radius:var(--r-lg);padding:26px;box-shadow:var(--sh-soft)}
+.card p{color:var(--ink-soft);font-size:15.5px}
+.ic{width:42px;height:42px;border-radius:12px;background:var(--grad-soft);display:flex;align-items:center;justify-content:center;margin-bottom:16px;color:var(--primary);font-family:var(--fd);font-weight:800;font-size:18px}
+.alt{background:var(--surface)}
+
+/* steps */
+.step{position:relative;padding-left:0}
+.step .n{width:34px;height:34px;border-radius:50%;background:var(--grad);color:#fff;font-family:var(--fd);font-weight:800;display:flex;align-items:center;justify-content:center;margin-bottom:16px;font-size:15px}
+
+/* cascade */
+.cascade{display:flex;align-items:stretch;gap:12px;margin-top:22px;flex-wrap:wrap}
+.lvl{flex:1;min-width:220px;background:#fff;border:1.5px solid var(--line);border-radius:var(--r);padding:18px 20px;position:relative}
+.lvl.first{border-color:var(--primary);background:var(--primary-50)}
+.lvl .k{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px;color:var(--primary-700);font-weight:600;margin-bottom:6px;word-break:break-all}
+.lvl .t{font-weight:600;font-size:15px;margin-bottom:4px}
+.lvl .d{font-size:14px;color:var(--muted)}
+.arrow{align-self:center;color:var(--muted);font-size:22px}
+
+/* columns table */
+.tbl{width:100%;border-collapse:collapse;font-size:15px;background:#fff;border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.tbl th,.tbl td{padding:12px 16px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+.tbl th{background:var(--surface);color:var(--ink-soft);font-size:13px;font-weight:600}
+.tbl tr:last-child td{border-bottom:0}
+.tbl td:first-child{font-weight:600;white-space:nowrap}
+.tbl-wrap{overflow-x:auto;border-radius:var(--r)}
+
+/* checklist */
+.check{list-style:none;display:grid;gap:12px;margin-top:18px}
+.check li{display:flex;gap:12px;align-items:flex-start;font-size:15.5px;color:var(--ink-soft)}
+.check li::before{content:"✓";flex-shrink:0;width:24px;height:24px;border-radius:50%;background:#ECFDF5;color:#047857;font-weight:700;display:flex;align-items:center;justify-content:center;font-size:13px;margin-top:2px}
+.check li b{color:var(--ink)}
+
+/* flow */
+.flow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:22px}
+.node{background:#fff;border:1.5px solid var(--line);border-radius:var(--r);padding:14px 18px;min-width:180px;flex:1}
+.node .t{font-weight:600;font-size:15px}
+.node .d{font-size:13px;color:var(--muted);margin-top:2px}
+.node.hl{border-color:var(--accent);background:var(--accent-50)}
+.flow .arrow{font-size:20px}
+
+/* token guide */
+.guide{display:grid;gap:22px}
+.gstep{display:grid;grid-template-columns:1fr 1.15fr;gap:28px;align-items:center;background:#fff;border:1px solid var(--line);border-radius:var(--r-lg);padding:26px;box-shadow:var(--sh-soft)}
+.gstep:nth-child(even){grid-template-columns:1.15fr 1fr}
+.gstep:nth-child(even) .gtext{order:2}
+.gtext .n{display:inline-flex;width:30px;height:30px;border-radius:50%;background:var(--grad);color:#fff;font-family:var(--fd);font-weight:800;align-items:center;justify-content:center;font-size:14px;margin-bottom:12px}
+.gtext p{color:var(--ink-soft);font-size:15.5px}
+.gtext .path{display:inline-flex;flex-wrap:wrap;gap:6px;align-items:center;margin:10px 0;font-size:14px}
+.gtext .path span{background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:3px 9px;font-weight:500}
+.gtext .path i{color:var(--muted);font-style:normal}
+.shot{aspect-ratio:16/10;border-radius:var(--r);border:1px solid var(--line);background:repeating-linear-gradient(45deg,#F8FAFC 0 12px,#F1F5F9 12px 24px);display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:13px;text-align:center;padding:20px;overflow:hidden}
+.shot img{width:100%;height:100%;object-fit:cover;border-radius:var(--r)}
+.warn{background:#FFFBEB;border:1px solid #FDE68A;color:#78350F;border-radius:var(--r);padding:16px 18px;font-size:15px;margin-top:22px}
+.warn b{color:#92400E}
+
+/* faq */
+details{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:0 22px;margin-bottom:10px}
+summary{cursor:pointer;font-weight:600;font-size:16.5px;padding:18px 0;list-style:none;display:flex;justify-content:space-between;align-items:center;gap:12px}
+summary::-webkit-details-marker{display:none}
+summary::after{content:"+";color:var(--muted);font-size:22px;font-weight:400;flex-shrink:0}
+details[open] summary::after{content:"–"}
+details p{color:var(--ink-soft);padding:0 0 18px;font-size:15.5px}
+
+/* MAMS band */
+.band{background:var(--ink);color:#F8FAFC;padding:80px 0}
+.band .eyebrow{color:var(--accent-300)}
+.band h2{color:#fff}
+.band p{color:#CBD5E1;max-width:620px;font-size:17px}
+.band .wrap{display:grid;grid-template-columns:1.2fr .8fr;gap:48px;align-items:center}
+.band .stat{background:#1E293B;border:1px solid #334155;border-radius:var(--r-lg);padding:28px}
+.band .stat .v{font-family:var(--fd);font-weight:800;font-size:46px;letter-spacing:-.03em;color:#fff;line-height:1}
+.band .stat .l{color:#94A3B8;font-size:14px;margin-top:8px}
+.band .stat + .stat{margin-top:14px}
+.band .btn-primary{margin-top:26px}
+.band a.lnk{color:var(--accent-300)}
+
+/* footer */
+footer{padding:36px 0;border-top:1px solid var(--line);font-size:14px;color:var(--muted)}
+footer .wrap{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;align-items:center}
+footer a{color:var(--muted);text-decoration:underline}
+
+@media (max-width:960px){
+  h1{font-size:40px}h2{font-size:28px}
+  .hero .wrap,.band .wrap,.gstep,.gstep:nth-child(even){grid-template-columns:1fr}
+  .gstep:nth-child(even) .gtext{order:0}
+  .grid3,.grid4{grid-template-columns:1fr 1fr}
+  .links{display:none}
+  section{padding:64px 0}
+}
+@media (max-width:600px){
+  h1{font-size:34px}
+  .grid3,.grid4,.grid2{grid-template-columns:1fr}
+  .hero{padding:56px 0 48px}
+  .mock{display:none}
+}
+</style>
+</head>
+<body>
+
+<div class="nav"><div class="wrap">
+  <a class="brand" href="#top">
+    <svg width="30" height="30" viewBox="0 0 48 48" fill="none" aria-hidden="true"><g stroke="#4F46E5" stroke-width="2.4" stroke-linecap="round"><path d="M11 36 L18 25" opacity=".55"/><path d="M24 38 L18 25" opacity=".55"/><path d="M24 38 L30 25" opacity=".55"/><path d="M37 36 L30 25" opacity=".55"/><path d="M18 25 L24 13" opacity=".85"/><path d="M30 25 L24 13" opacity=".85"/></g><g fill="#4F46E5"><circle cx="11" cy="36" r="3.4"/><circle cx="24" cy="38" r="3.4"/><circle cx="37" cy="36" r="3.4"/><circle cx="18" cy="25" r="3.4"/><circle cx="30" cy="25" r="3.4"/></g><circle cx="24" cy="11" r="5" fill="#7C3AED"/></svg>
+    mams <small>· Opisy z BASE</small>
+  </a>
+  <nav class="links">
+    <a href="#jak-dziala">Jak działa</a>
+    <a href="#import">Import</a>
+    <a href="#bezpieczenstwo">Bezpieczeństwo</a>
+    <a href="#token">Token API</a>
+    <a href="#faq">FAQ</a>
+  </nav>
+  <a class="btn btn-primary btn-sm" href="/app">Otwórz narzędzie</a>
+</div></div>
+
+<!-- ============ HERO ============ -->
+<header class="hero" id="top"><div class="wrap">
+  <div>
+    <div class="eyebrow">Darmowe narzędzie · dla użytkowników BASE (BaseLinker)</div>
+    <h1>Opisy ofert per marketplace — w końcu do wyjęcia z BASE.</h1>
+    <p class="sub" style="margin-top:20px">BASE trzyma osobne nazwy i opisy dla Allegro, Amazon, Kauflandu, eBay czy Temu — ale nie pozwala ich masowo wyeksportować. To narzędzie pobiera je do Excela dla wybranego kanału i języka, a poprawiony plik wgrywa z powrotem przez API.</p>
+    <div class="cta">
+      <a class="btn btn-primary" href="/app">Otwórz narzędzie — bez rejestracji</a>
+      <a class="btn btn-ghost" href="#token">Jak zdobyć token API</a>
+    </div>
+    <div class="trust">
+      <span>Bez konta i logowania</span>
+      <span>Token nie jest zapisywany</span>
+      <span>Kod otwarty na GitHubie</span>
+    </div>
+  </div>
+  <div class="mock" aria-hidden="true">
+    <div class="bar"><i></i><i></i><i></i></div>
+    <div class="title">opisy_kaufland-de_de_2026-09-07.xlsx <span class="pill">Kaufland DE · DE</span></div>
+    <table>
+      <tr><th>SKU</th><th>Nazwa oferty</th><th>Opis oferty</th><th>Źródło</th></tr>
+      <tr><td class="c">KL-AA-405</td><td>Türgriff Edelstahl matt, Rosette rund</td><td class="desc">Hochwertiger Türgriff aus gebürstetem Edelstahl…</td><td><span class="tag m">marketplace</span></td></tr>
+      <tr><td class="c">KL-AA-408</td><td>Türgriff Schwarz matt, Langschild</td><td class="desc">Moderner Türgriff mit Langschild, geeignet für…</td><td><span class="tag m">marketplace</span></td></tr>
+      <tr><td class="c">WS-PO-006</td><td>Sicherheitsbeschlag WS-PO-006</td><td class="desc">Zestaw zawiera: klamka, szyld, wkładka…</td><td><span class="tag b">bazowy</span></td></tr>
+      <tr><td class="c">ZW-CL-112</td><td>Profilzylinder 30/35 Messing</td><td class="desc">Profilzylinder mit Not- und Gefahrenfunktion…</td><td><span class="tag l">język</span></td></tr>
+      <tr><td class="c">OK-FM-201</td><td>Fenstergriff Aluminium weiß</td><td class="desc">Fenstergriff aus Aluminium, RAL 9016…</td><td><span class="tag m">marketplace</span></td></tr>
+    </table>
+  </div>
+</div></header>
+
+<!-- ============ PROBLEM ============ -->
+<section id="problem"><div class="wrap">
+  <div class="eyebrow">Problem</div>
+  <h2>Opisy per kanał są w BASE. Tylko nie da się ich stamtąd wyjąć.</h2>
+  <p class="lead-sec">Jeśli sprzedajesz na kilku marketplace'ach, BASE pozwala nadpisać nazwę i opis osobno dla każdego kanału i języka. Świetnie — dopóki nie chcesz zobaczyć ich wszystkich naraz.</p>
+  <div class="grid3">
+    <div class="card"><div class="ic">1</div><h3>Eksport do Excela pomija kanały</h3><p>Wbudowany eksport produktów wyciąga tylko pola bazowe. Nadpisania dla Allegro, Amazon.de czy Kaufland.fr zostają w BASE — niewidoczne w pliku.</p></div>
+    <div class="card"><div class="ic">2</div><h3>Audyt = klikanie produkt po produkcie</h3><p>Żeby sprawdzić, które oferty mają opis pisany pod kanał, a które lecą na surowym opisie bazowym, trzeba otworzyć każdy produkt i każdą zakładkę osobno.</p></div>
+    <div class="card"><div class="ic">3</div><h3>Masowa poprawka nie istnieje</h3><p>Copywriter, tłumacz albo AI poprawiły 2 000 opisów w Excelu? Do BASE wracają ręcznie. Albo przez API, które ktoś musi oprogramować.</p></div>
+  </div>
+</div></section>
+
+<!-- ============ JAK DZIAŁA ============ -->
+<section id="jak-dziala" class="alt"><div class="wrap">
+  <div class="eyebrow">Jak to działa</div>
+  <h2>Cztery kroki. Bez instalacji, bez rejestracji.</h2>
+  <p class="lead-sec">Wszystko dzieje się w przeglądarce. Jedyne, czego potrzebujesz, to token API z Twojego konta BASE — <a href="#token">instrukcja niżej</a>.</p>
+  <div class="grid4">
+    <div class="card step"><div class="n">1</div><h3>Wklej token</h3><p>Narzędzie łączy się z Twoim kontem i pobiera listę katalogów oraz kanałów, które masz podpięte w BASE.</p></div>
+    <div class="card step"><div class="n">2</div><h3>Wybierz kanał i język</h3><p>Allegro, Amazon DE, Kaufland FR, eBay EN, Temu… Lista buduje się z Twojego katalogu — widzisz dokładnie to, co masz w BASE.</p></div>
+    <div class="card step"><div class="n">3</div><h3>Pobierz XLSX</h3><p>Cały katalog albo wybrane SKU. Nazwa, opis, liczba znaków i kolumna <b>Źródło</b> mówiąca, skąd wzięła się każda wartość.</p></div>
+    <div class="card step"><div class="n">4</div><h3>Popraw i wgraj z powrotem</h3><p>Ten sam plik, poprawione komórki. Narzędzie pokazuje podgląd zmian, robi kopię zapasową i dopiero po potwierdzeniu zapisuje w BASE.</p></div>
+  </div>
+
+  <div style="margin-top:56px">
+    <h3 style="font-size:24px">Kaskada opisów — dlaczego kolumna „Źródło" jest ważna</h3>
+    <p style="color:var(--ink-soft);max-width:720px">BASE trzyma treści pod kluczami <span class="mono">pole|język|kanał</span>. Nie każdy produkt ma nadpisanie dla każdego kanału, więc marketplace dostaje pierwszą wartość, która istnieje — schodząc po kaskadzie. Narzędzie robi dokładnie to samo i mówi Ci, na którym poziomie się zatrzymało.</p>
+    <div class="cascade">
+      <div class="lvl first"><div class="k">description|de|kaufland_13803</div><div class="t">Nadpisanie dla kanału</div><div class="d">Opis pisany pod ten konkretny marketplace. Źródło: <b>marketplace</b>.</div></div>
+      <div class="arrow">→</div>
+      <div class="lvl"><div class="k">description|de</div><div class="t">Tłumaczenie językowe</div><div class="d">Wspólne dla wszystkich kanałów w tym języku. Źródło: <b>język</b>.</div></div>
+      <div class="arrow">→</div>
+      <div class="lvl"><div class="k">description</div><div class="t">Opis bazowy</div><div class="d">Surowa wartość produktu w katalogu. Źródło: <b>bazowy</b>.</div></div>
+    </div>
+    <p style="color:var(--muted);font-size:14.5px;margin-top:16px">Przykład z realnego katalogu: ten sam produkt na Temu ma opis marketplace'owy (1 368 znaków, pisany pod kanał), a na Allegro schodzi na bazowy (74 znaki). Bez kolumny „Źródło" nigdy byś tego nie zauważył.</p>
+  </div>
+</div></section>
+
+<!-- ============ PLIK ============ -->
+<section id="plik"><div class="wrap">
+  <div class="eyebrow">Co dostajesz</div>
+  <h2>Plik gotowy do pracy — dla Ciebie, copywritera albo AI.</h2>
+  <p class="lead-sec">Excel (XLSX) albo CSV. Jeden wiersz na produkt, jeden plik na kanał i język. Kolumny nazwane po ludzku, żeby dało się go oddać komukolwiek bez tłumaczenia.</p>
+  <div class="tbl-wrap"><table class="tbl">
+    <tr><th>Kolumna</th><th>Co zawiera</th></tr>
+    <tr><td>SKU · ID BASE · EAN</td><td>Identyfikatory produktu. SKU albo ID BASE wystarczy, żeby import trafił w ten sam produkt.</td></tr>
+    <tr><td>Nazwa oferty</td><td>Tytuł dla wybranego kanału i języka (po kaskadzie).</td></tr>
+    <tr><td>Opis oferty</td><td>Treść opisu — często HTML, zależnie od kanału. Opcjonalnie także opisy dodatkowe 1–4.</td></tr>
+    <tr><td>Znaków w opisie</td><td>Pełna długość oryginału. Przydaje się przy limitach marketplace'ów.</td></tr>
+    <tr><td>Źródło: Nazwa · Źródło: Opis</td><td><b>marketplace</b> / <b>język</b> / <b>bazowy</b> / <b>brak</b> — z którego poziomu kaskady pochodzi wartość.</td></tr>
+    <tr><td>Arkusz META</td><td>Katalog, kanał, język i data eksportu. Przy imporcie narzędzie odczytuje to samo i podpowiada, gdzie zapisać.</td></tr>
+  </table></div>
+</div></section>
+
+<!-- ============ IMPORT ============ -->
+<section id="import" class="alt"><div class="wrap">
+  <div class="grid2" style="align-items:center;gap:48px">
+    <div>
+      <div class="eyebrow">Import</div>
+      <h2>Wgraj poprawiony plik. Bez ryzyka, że coś rozwalisz.</h2>
+      <p style="color:var(--ink-soft)">Import został zaprojektowany tak, żeby nie dało się przypadkiem skasować albo nadpisać nie tego, co trzeba. Zanim cokolwiek trafi do BASE, widzisz dokładnie, co się zmieni.</p>
+      <ul class="check">
+        <li><b>Podgląd zmian przed zapisem.</b> Narzędzie pobiera aktualny stan z BASE, porównuje z plikiem i pokazuje „było → będzie" dla każdego pola.</li>
+        <li><b>Puste komórki są pomijane.</b> Import niczego nie kasuje. Zmienia tylko to, co faktycznie różni się od stanu w BASE.</li>
+        <li><b>Automatyczna kopia zapasowa.</b> Przed zapisem pobierasz XLSX ze stanem sprzed importu — w razie czego wgrywasz go tym samym narzędziem.</li>
+        <li><b>Wybierasz poziom zapisu.</b> Nadpisanie dla kanału, tłumaczenie językowe albo wartość bazowa — świadomie, nie domyślnie.</li>
+        <li><b>Raport po imporcie.</b> Który produkt zapisany, który zwrócił błąd i dlaczego.</li>
+      </ul>
+    </div>
+    <div class="card" style="padding:0;overflow:hidden">
+      <div style="background:var(--surface);border-bottom:1px solid var(--line);padding:14px 20px;font-weight:600;font-size:14px;display:flex;align-items:center;gap:10px"><span style="width:8px;height:8px;border-radius:50%;background:var(--success);display:inline-block"></span> Podgląd zmian · nic jeszcze nie zapisano</div>
+      <div style="padding:20px">
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px">
+          <div style="background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px"><div style="font-family:var(--fd);font-weight:800;font-size:26px;color:var(--accent);line-height:1">312</div><div style="font-size:12px;color:var(--muted)">pól do zapisania</div></div>
+          <div style="background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px"><div style="font-family:var(--fd);font-weight:800;font-size:26px;line-height:1">1 688</div><div style="font-size:12px;color:var(--muted)">bez zmian</div></div>
+          <div style="background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px"><div style="font-family:var(--fd);font-weight:800;font-size:26px;line-height:1;color:#B45309">2</div><div style="font-size:12px;color:var(--muted)">nie znaleziono</div></div>
+        </div>
+        <table style="width:100%;border-collapse:collapse;font-size:13px">
+          <tr><th style="text-align:left;padding:6px 8px;color:var(--muted);font-weight:600;font-size:12px;border-bottom:1px solid var(--line)">SKU</th><th style="text-align:left;padding:6px 8px;color:var(--muted);font-weight:600;font-size:12px;border-bottom:1px solid var(--line)">Było → Będzie</th></tr>
+          <tr><td style="padding:8px;border-bottom:1px solid var(--line);font-family:ui-monospace,monospace;white-space:nowrap">KL-AA-405</td><td style="padding:8px;border-bottom:1px solid var(--line)"><span style="color:var(--muted);text-decoration:line-through;display:block">Klamka drzwiowa stal nierdzewna</span><span>Klamka drzwiowa na rozecie okrągłej, stal nierdzewna szczotkowana, klasa 3</span></td></tr>
+          <tr><td style="padding:8px;border-bottom:1px solid var(--line);font-family:ui-monospace,monospace;white-space:nowrap">WS-PO-006</td><td style="padding:8px;border-bottom:1px solid var(--line)"><span style="color:var(--muted);display:block">(puste)</span><span>Zestaw zabezpieczający WS-PO-006 z wkładką klasy C — 3 klucze w komplecie</span></td></tr>
+        </table>
+        <div style="display:flex;gap:10px;margin-top:16px;justify-content:flex-end"><span class="btn btn-ghost btn-sm">Pobierz kopię zapasową</span><span class="btn btn-sm" style="background:var(--danger);color:#fff">Zapisz zmiany w BASE</span></div>
+      </div>
+    </div>
+  </div>
+</div></section>
+
+<!-- ============ BEZPIECZEŃSTWO ============ -->
+<section id="bezpieczenstwo"><div class="wrap">
+  <div class="eyebrow">Bezpieczeństwo</div>
+  <h2>Twój token zostaje Twój.</h2>
+  <p class="lead-sec">Narzędzie nie ma bazy danych, kont ani logów z tokenami. Token przekazujesz w nagłówku żądania, serwer przepuszcza go do API BASE i zapomina. Cały kod jest publiczny — możesz to sprawdzić.</p>
+  <div class="flow">
+    <div class="node"><div class="t">Twoja przeglądarka</div><div class="d">token w pamięci karty (albo, jeśli chcesz, w tej przeglądarce)</div></div>
+    <div class="arrow">→</div>
+    <div class="node hl"><div class="t">Proxy (Vercel)</div><div class="d">przekazuje żądanie 1:1, bez zapisu, bez logowania tokena; tylko 6 dozwolonych metod API</div></div>
+    <div class="arrow">→</div>
+    <div class="node"><div class="t">api.baselinker.com</div><div class="d">odpowiedź wraca tą samą drogą do przeglądarki</div></div>
+  </div>
+  <div class="grid3" style="margin-top:32px">
+    <div class="card"><h3>Tylko potrzebne metody</h3><p>Proxy przepuszcza wyłącznie odczyt katalogu i zapis pól tekstowych istniejących produktów. Nie da się nim tworzyć, kasować produktów ani ruszać zamówień, cen czy stanów.</p></div>
+    <div class="card"><h3>Osobny token, który możesz usunąć</h3><p>Wygeneruj w BASE token tylko dla tego narzędzia. Po skończonej pracy skasujesz go jednym kliknięciem w tej samej zakładce — bez wpływu na inne integracje.</p></div>
+    <div class="card"><h3>Kod otwarty</h3><p>Aplikacja to jeden plik HTML i jedna funkcja proxy. Repozytorium jest publiczne — możesz przejrzeć każdą linię albo postawić własną kopię na swoim Vercelu.</p></div>
+  </div>
+</div></section>
+
+<!-- ============ TOKEN ============ -->
+<section id="token" class="alt"><div class="wrap">
+  <div class="eyebrow">Instrukcja</div>
+  <h2>Jak zdobyć token API z BASE — krok po kroku</h2>
+  <p class="lead-sec">Zajmuje niecałą minutę. Token generujesz w panelu BASE, wklejasz do narzędzia i gotowe. Potrzebujesz dostępu do ustawień konta (właściciel albo użytkownik z uprawnieniami do API).</p>
+  <div class="guide">
+    <div class="gstep">
+      <div class="gtext"><span class="n">1</span><h3>Wejdź w ustawienia konta</h3><p>Zaloguj się do panelu BASE. W lewym menu, na samym dole, otwórz:</p><div class="path"><span>Konto i inne</span><i>→</i><span>Moje konto</span></div><p>Zobaczysz zakładki z ustawieniami konta.</p></div>
+      <div class="shot" data-shot="token-1">Zrzut ekranu: menu „Konto i inne → Moje konto"</div>
+    </div>
+    <div class="gstep">
+      <div class="gtext"><span class="n">2</span><h3>Otwórz zakładkę API</h3><div class="path"><span>Moje konto</span><i>→</i><span>API</span></div><p>Tu znajdziesz listę tokenów API podpiętych do konta — każda integracja (sklep, kurier, narzędzie zewnętrzne) może mieć własny.</p></div>
+      <div class="shot" data-shot="token-2">Zrzut ekranu: zakładka „API" w ustawieniach konta</div>
+    </div>
+    <div class="gstep">
+      <div class="gtext"><span class="n">3</span><h3>Wygeneruj nowy token</h3><p>Kliknij przycisk dodawania tokena. W polu nazwy wpisz coś, po czym go później rozpoznasz, np. <span class="mono">Opisy MAMS</span>. Jeśli BASE pyta o uprawnienia — wystarczy dostęp do <b>Produktów / Katalogu</b> (odczyt i zapis). Zamówienia, magazyn i faktury nie są potrzebne.</p></div>
+      <div class="shot" data-shot="token-3">Zrzut ekranu: formularz nowego tokena z nazwą „Opisy MAMS"</div>
+    </div>
+    <div class="gstep">
+      <div class="gtext"><span class="n">4</span><h3>Skopiuj token</h3><p>Token to długi ciąg znaków w formacie <span class="mono">1234567-8901234-ABCDEF…</span>. Skopiuj go w całości — ikona kopiowania obok tokena albo zaznacz i <span class="mono">Ctrl+C</span>.</p><p style="margin-top:8px">Traktuj go jak hasło: nie wysyłaj mailem, nie wklejaj na czacie.</p></div>
+      <div class="shot" data-shot="token-4">Zrzut ekranu: wygenerowany token z ikoną kopiowania</div>
+    </div>
+    <div class="gstep">
+      <div class="gtext"><span class="n">5</span><h3>Wklej w narzędziu i połącz</h3><p>Otwórz <a href="/app">narzędzie</a>, wklej token w pierwszym kroku i kliknij <b>Połącz</b>. Narzędzie od razu pokaże Twoje katalogi i kanały. Jeśli zaznaczysz „Zapamiętaj token w tej przeglądarce", następnym razem nie musisz go wklejać.</p><a class="btn btn-primary btn-sm" href="/app" style="margin-top:8px">Otwórz narzędzie</a></div>
+      <div class="shot" data-shot="token-5">Zrzut ekranu: krok 1 w narzędziu — pole tokena i przycisk „Połącz"</div>
+    </div>
+  </div>
+  <div class="warn"><b>Po skończonej pracy możesz token usunąć</b> — w tej samej zakładce API w BASE. Narzędzie przestanie wtedy działać z tym tokenem, ale nic więcej się nie stanie. Do kolejnego eksportu wygenerujesz nowy w 30 sekund.</div>
+</div></section>
+
+<!-- ============ FAQ ============ -->
+<section id="faq"><div class="wrap">
+  <div class="eyebrow">FAQ</div>
+  <h2>Pytania, które zadaje każdy</h2>
+  <div style="max-width:800px;margin-top:28px">
+    <details open><summary>Czy to naprawdę jest darmowe? Gdzie jest haczyk?</summary><p>Tak, w całości i bez limitów. Narzędzie powstało przy wdrożeniu dla dużego dystrybutora i uznaliśmy, że innym użytkownikom BASE też się przyda. „Haczyk" jest jeden: na dole strony jest informacja o MAMS — systemie, który masowo generuje oferty na marketplace'y. Jeśli kiedyś będziesz potrzebować nie tylko wyjąć opisy, ale też je napisać — będziesz wiedzieć, gdzie szukać.</p></details>
+    <details><summary>Czy narzędzie widzi moje zamówienia, ceny, stany magazynowe?</summary><p>Nie. Proxy przepuszcza tylko sześć metod API: listę katalogów, listę pól tekstowych, listę integracji, listę produktów, dane produktów i aktualizację pól tekstowych. Każda inna metoda jest odrzucana po stronie serwera, niezależnie od tego, co ma wpisany token.</p></details>
+    <details><summary>Czy import może coś skasować?</summary><p>Nie. Puste komórki są pomijane, a zmienione są tylko te pola, które różnią się od aktualnego stanu w BASE. Przed zapisem widzisz pełny podgląd „było → będzie" i automatycznie pobierasz kopię zapasową. Jedyne, co import robi, to nadpisuje wskazane pola tekstowe wskazanych produktów — dokładnie tak, jakbyś zrobił to ręcznie w panelu.</p></details>
+    <details><summary>Ile to trwa dla dużego katalogu?</summary><p>BASE ma limit 100 zapytań na minutę na token. Eksport pobiera opisy paczkami po 100 produktów, więc katalog 10 000 SKU to ok. 100 zapytań — około minuty. Import to jedno zapytanie na produkt, więc 1 000 zmienionych produktów zajmie ok. 11 minut. Pasek postępu pokazuje, na czym stoisz; nie zamykaj karty w trakcie.</p></details>
+    <details><summary>Dlaczego w kolumnie „Źródło" mam „bazowy", skoro w BASE widzę opis dla tego kanału?</summary><p>Najczęstsza przyczyna: opis dla kanału jest zapisany w innym języku niż ten, który wybrałeś w narzędziu. Klucz w BASE wygląda tak: <span class="mono">description|de|kaufland_13803</span> — język jest jego częścią. Sprawdź wybór języka w kroku 2. Druga możliwość: opis siedzi w polu „Opis dodatkowy" zamiast w głównym — zaznacz opisy dodatkowe w kroku 3.</p></details>
+    <details><summary>Temu i Amazon: część treści siedzi w „parametrach" — czy narzędzie to widzi?</summary><p>Nie w tej wersji. Dla niektórych integracji BASE trzyma tytuły i bullet pointy także w obiekcie <span class="mono">features</span> (np. <span class="mono">temu_title_pl</span>, <span class="mono">amazon_bullet_1_pl</span>). Narzędzie eksportuje pola <span class="mono">name</span>, <span class="mono">description</span> i opisy dodatkowe. Obsługa <span class="mono">features</span> jest na liście na przyszłość.</p></details>
+    <details><summary>Czy mogę postawić własną kopię?</summary><p>Tak. Repozytorium jest publiczne (licencja MIT). To statyczny HTML plus jedna funkcja serverless — deploy na Vercelu zajmuje dwie minuty i nie wymaga żadnej konfiguracji ani zmiennych środowiskowych.</p></details>
+    <details><summary>Nie działa / mam pomysł na funkcję. Gdzie pisać?</summary><p>Na <a href="mailto:maciej.fidor@mediafy.com.pl">maciej.fidor@mediafy.com.pl</a> albo jako issue w repozytorium. Jeśli coś się wysypało, dołącz komunikat błędu z narzędzia — zawiera kod błędu z API BASE, który od razu mówi, co się stało.</p></details>
+  </div>
+</div></section>
+
+<!-- ============ MAMS ============ -->
+<section class="band" id="mams"><div class="wrap">
+  <div>
+    <div class="eyebrow">Od twórców narzędzia</div>
+    <h2>Wyjąłeś opisy. A gdyby ktoś napisał je za Ciebie — na 8 marketplace'ów naraz?</h2>
+    <p>MAMS wystawia i utrzymuje cały katalog produktów na marketplace'ach: oferty i grafiki A+ generowane masowo przez wieloagentowy system AI, w jakości, która przechodzi walidację i sprzedaje. Z BASE integruje się bezpośrednio — tym samym API, którego używa to narzędzie.</p>
+    <a class="btn btn-primary" href="https://mams.mediafy.com.pl" target="_blank" rel="noopener">Zobacz, jak działa MAMS</a>
+    <p style="margin-top:14px;font-size:14px">Albo napisz: <a class="lnk" href="mailto:maciej.fidor@mediafy.com.pl">maciej.fidor@mediafy.com.pl</a></p>
+  </div>
+  <div>
+    <div class="stat"><div class="v">+130%</div><div class="l">GMV rok do roku u dystrybutora 11 000+ SKU po wdrożeniu MAMS (pomiar sierpień 2026)</div></div>
+    <div class="stat"><div class="v">8</div><div class="l">marketplace'ów: Allegro, Amazon, Kaufland, eBay, Temu, InPost, Merxu, OLX</div></div>
+  </div>
+</div></section>
+
+<footer><div class="wrap">
+  <div>© 2026 Mediafy · <b style="color:var(--ink)">MAMS</b> — Multi-Agent Marketplace System</div>
+  <div><a href="https://mams.mediafy.com.pl" target="_blank" rel="noopener">mams.mediafy.com.pl</a> · <a href="#" data-repo>Kod na GitHubie</a> · <a href="mailto:maciej.fidor@mediafy.com.pl">Kontakt</a> · BASE i BaseLinker są znakami towarowymi ich właściciela; narzędzie nie jest z nim powiązane.</div>
+</div></footer>
+
+<script>
+// Podmiana placeholderów na zrzuty ekranu, gdy pliki img/token-N.png istnieją.
+document.querySelectorAll('.shot[data-shot]').forEach(el => {
+  const img = new Image();
+  img.alt = el.textContent;
+  img.onload = () => { el.textContent = ''; el.appendChild(img); };
+  img.src = 'img/' + el.dataset.shot + '.png';
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48" fill="none" role="img" aria-label="MAMS">
+  <rect width="48" height="48" rx="11" fill="#0F172A"/>
+  <g transform="translate(5.3,5.3) scale(0.78)">
+    <g stroke="#818CF8" stroke-width="2.6" stroke-linecap="round">
+      <path d="M11 36 L18 25" opacity=".55"/>
+      <path d="M24 38 L18 25" opacity=".55"/>
+      <path d="M24 38 L30 25" opacity=".55"/>
+      <path d="M37 36 L30 25" opacity=".55"/>
+      <path d="M18 25 L24 13" opacity=".85"/>
+      <path d="M30 25 L24 13" opacity=".85"/>
+    </g>
+    <g fill="#818CF8">
+      <circle cx="11" cy="36" r="3.6"/>
+      <circle cx="24" cy="38" r="3.6"/>
+      <circle cx="37" cy="36" r="3.6"/>
+      <circle cx="18" cy="25" r="3.6"/>
+      <circle cx="30" cy="25" r="3.6"/>
+    </g>
+    <circle cx="24" cy="11" r="5.2" fill="#A78BFA"/>
+  </g>
+</svg>

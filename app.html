@@ -1,0 +1,995 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Opisy per marketplace z BASE — aplikacja</title>
+<meta name="description" content="Eksport i import nazw oraz opisów ofert z BASE (BaseLinker) dla wybranego marketplace'u i języka. Darmowe narzędzie od MAMS.">
+<meta name="robots" content="noindex">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Manrope:wght@700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{
+  --ink:#0F172A;--ink-soft:#334155;--muted:#64748B;--white:#fff;
+  --surface:#F8FAFC;--surface-2:#F1F5F9;--line:#E2E8F0;
+  --primary:#4F46E5;--primary-700:#4338CA;--primary-50:#EEF2FF;
+  --accent:#7C3AED;--accent-700:#6D28D9;--accent-50:#F5F3FF;
+  --success:#10B981;--warning:#F59E0B;--danger:#DC2626;
+  --grad:linear-gradient(135deg,#4F46E5 0%,#7C3AED 100%);
+  --fd:'Manrope','Segoe UI',system-ui,sans-serif;--fb:'Inter',system-ui,sans-serif;
+  --r:14px;--r-lg:22px;
+  --sh-card:0 8px 24px rgba(15,23,42,.08);--sh-soft:0 1px 2px rgba(15,23,42,.06),0 1px 3px rgba(15,23,42,.05);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{font-family:var(--fb);background:var(--surface);color:var(--ink);line-height:1.5;font-size:15px}
+a{color:var(--primary);text-decoration:none}
+a:hover{text-decoration:underline}
+button{font-family:inherit}
+
+/* top bar */
+.top{background:#fff;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:20}
+.top-in{max-width:1040px;margin:0 auto;padding:12px 20px;display:flex;align-items:center;gap:16px}
+.brand{display:flex;align-items:center;gap:10px;color:var(--ink);font-family:var(--fd);font-weight:800;font-size:18px;letter-spacing:-.02em}
+.brand:hover{text-decoration:none}
+.brand small{font-family:var(--fb);font-weight:500;color:var(--muted);font-size:13px;letter-spacing:0;margin-left:4px}
+.top-links{margin-left:auto;display:flex;gap:18px;font-size:14px;font-weight:500}
+.top-links a{color:var(--ink-soft)}
+.top-links a:hover{color:var(--primary)}
+
+.wrap{max-width:1040px;margin:0 auto;padding:28px 20px 80px}
+h1{font-family:var(--fd);font-weight:800;font-size:30px;letter-spacing:-.03em;margin-bottom:4px}
+.lead{color:var(--muted);font-size:15px;margin-bottom:24px}
+
+/* tabs */
+.tabs{display:flex;gap:4px;background:var(--surface-2);padding:4px;border-radius:999px;width:max-content;margin-bottom:22px}
+.tab{border:0;background:transparent;padding:9px 20px;border-radius:999px;font-weight:600;font-size:14px;color:var(--ink-soft);cursor:pointer;transition:.15s}
+.tab.on{background:#fff;color:var(--primary);box-shadow:var(--sh-soft)}
+.panel{display:none}.panel.on{display:block}
+
+/* cards */
+.card{background:#fff;border:1px solid var(--line);border-radius:var(--r-lg);padding:22px 24px;margin-bottom:14px;box-shadow:var(--sh-soft)}
+.card.dim{opacity:.5;pointer-events:none}
+.step{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.num{width:26px;height:26px;border-radius:50%;background:var(--grad);color:#fff;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.step h2{font-family:var(--fd);font-weight:700;font-size:17px;letter-spacing:-.01em}
+.step .meta{margin-left:auto;color:var(--muted);font-size:13px}
+.hint{color:var(--muted);font-size:13px;margin-top:8px}
+.hint b{color:var(--ink-soft);font-weight:600}
+
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px}
+.tile{border:1.5px solid var(--line);border-radius:12px;padding:11px 13px;cursor:pointer;background:#fff;text-align:left;font-size:14px;color:var(--ink);transition:.12s}
+.tile:hover{border-color:#c7cbd1;background:#fafbfc}
+.tile.on{border-color:var(--primary);background:var(--primary-50);box-shadow:0 0 0 3px rgba(79,70,229,.12)}
+.tile .n{font-weight:600;display:block}
+.tile .k{color:var(--muted);font-size:12px;display:block;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chip{border:1.5px solid var(--line);border-radius:999px;padding:8px 16px;cursor:pointer;background:#fff;font-size:14px;font-weight:500;color:var(--ink);transition:.12s}
+.chip:hover{border-color:#c7cbd1}
+.chip.on{border-color:var(--primary);background:var(--primary-50);color:var(--primary-700)}
+.chip input{display:none}
+
+input[type=text],input[type=password],textarea,select{
+  width:100%;border:1.5px solid var(--line);border-radius:12px;padding:11px 13px;font-family:inherit;font-size:14px;color:var(--ink);background:#fff
+}
+textarea{min-height:110px;resize:vertical;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px}
+input:focus,textarea:focus,select:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(79,70,229,.12)}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;border-radius:12px;padding:12px 20px;font-weight:600;font-size:15px;cursor:pointer;transition:.15s;text-decoration:none}
+.btn:hover{text-decoration:none}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:hover:not(:disabled){background:var(--accent-700)}
+.btn-primary:disabled{background:#c4b5fd;cursor:not-allowed}
+.btn-ghost{background:#fff;border:1.5px solid var(--line);color:var(--ink)}
+.btn-ghost:hover:not(:disabled){border-color:#c7cbd1}
+.btn-ghost:disabled{opacity:.5;cursor:not-allowed}
+.btn-danger{background:var(--danger);color:#fff}
+.btn-danger:hover:not(:disabled){background:#b91c1c}
+.btn-danger:disabled{background:#fca5a5;cursor:not-allowed}
+.btn-lg{width:100%;padding:15px;font-size:16px}
+.btn-sm{padding:8px 14px;font-size:13px;border-radius:10px}
+
+.progress{margin-top:16px}
+.bar{height:8px;background:var(--line);border-radius:4px;overflow:hidden}
+.fill{height:100%;background:var(--grad);width:0%;transition:width .25s}
+.status{font-size:14px;color:var(--muted);margin-top:10px;text-align:center}
+.status.ok{color:var(--success);font-weight:600}
+.status.err{color:var(--danger);font-weight:600}
+
+.badge{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:600}
+.badge.ok{background:#ECFDF5;color:#047857}
+.badge.warn{background:#FFFBEB;color:#B45309}
+.badge.err{background:#FEF2F2;color:#B91C1C}
+.badge.info{background:var(--primary-50);color:var(--primary-700)}
+
+.note{border-radius:12px;padding:12px 14px;font-size:14px;line-height:1.5;margin-top:12px}
+.note.warn{background:#FFFBEB;border:1px solid #FDE68A;color:#78350F}
+.note.info{background:var(--primary-50);border:1px solid #C7D2FE;color:#3730A3}
+.note.err{background:#FEF2F2;border:1px solid #FECACA;color:#991B1B}
+
+.kv{display:flex;flex-wrap:wrap;gap:8px 20px;font-size:14px;color:var(--ink-soft);margin-top:10px}
+.kv b{color:var(--ink)}
+
+.drop{border:2px dashed var(--line);border-radius:16px;padding:32px 20px;text-align:center;color:var(--muted);cursor:pointer;transition:.15s;background:#fff}
+.drop:hover,.drop.over{border-color:var(--primary);background:var(--primary-50);color:var(--primary-700)}
+.drop b{color:var(--ink);display:block;font-size:15px;margin-bottom:4px}
+.drop input{display:none}
+
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-top:14px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.stat .v{font-family:var(--fd);font-weight:800;font-size:24px;letter-spacing:-.02em;color:var(--ink)}
+.stat .l{font-size:12px;color:var(--muted);font-weight:500}
+.stat.accent .v{color:var(--accent)}
+.stat.warn .v{color:#B45309}
+
+.tbl-wrap{overflow:auto;border:1px solid var(--line);border-radius:12px;margin-top:14px;max-height:420px}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{background:var(--surface);position:sticky;top:0;font-weight:600;color:var(--ink-soft);font-size:12px;white-space:nowrap}
+td.diff{max-width:340px}
+td .old{color:var(--muted);text-decoration:line-through;display:block;white-space:pre-wrap;word-break:break-word;max-height:60px;overflow:hidden}
+td .new{color:var(--ink);display:block;white-space:pre-wrap;word-break:break-word;max-height:60px;overflow:hidden}
+
+.modal-bg{position:fixed;inset:0;background:rgba(15,23,42,.55);display:none;align-items:center;justify-content:center;z-index:50;padding:20px}
+.modal-bg.on{display:flex}
+.modal{background:#fff;border-radius:var(--r-lg);padding:26px;max-width:520px;width:100%;box-shadow:var(--sh-card)}
+.modal h3{font-family:var(--fd);font-weight:800;font-size:20px;letter-spacing:-.02em;margin-bottom:10px}
+.modal p{color:var(--ink-soft);font-size:14px;margin-bottom:10px}
+.modal .row{margin-top:18px;justify-content:flex-end}
+
+.token-row{display:flex;gap:10px;align-items:stretch}
+.token-row input{flex:1}
+.logged{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.foot{text-align:center;color:var(--muted);font-size:13px;margin-top:40px}
+.foot a{color:var(--muted);text-decoration:underline}
+.hide{display:none!important}
+label.cb{display:inline-flex;align-items:center;gap:8px;font-size:14px;color:var(--ink-soft);cursor:pointer}
+label.cb input{width:16px;height:16px;accent-color:var(--primary)}
+@media (max-width:640px){
+  .top-links{display:none}
+  h1{font-size:24px}
+  .card{padding:18px 16px}
+  .token-row{flex-direction:column}
+}
+</style>
+</head>
+<body>
+
+<div class="top"><div class="top-in">
+  <a class="brand" href="/">
+    <svg width="28" height="28" viewBox="0 0 48 48" fill="none" aria-hidden="true"><g stroke="#4F46E5" stroke-width="2.4" stroke-linecap="round"><path d="M11 36 L18 25" opacity=".55"/><path d="M24 38 L18 25" opacity=".55"/><path d="M24 38 L30 25" opacity=".55"/><path d="M37 36 L30 25" opacity=".55"/><path d="M18 25 L24 13" opacity=".85"/><path d="M30 25 L24 13" opacity=".85"/></g><g fill="#4F46E5"><circle cx="11" cy="36" r="3.4"/><circle cx="24" cy="38" r="3.4"/><circle cx="37" cy="36" r="3.4"/><circle cx="18" cy="25" r="3.4"/><circle cx="30" cy="25" r="3.4"/></g><circle cx="24" cy="11" r="5" fill="#7C3AED"/></svg>
+    mams <small>· Opisy z BASE</small>
+  </a>
+  <nav class="top-links">
+    <a href="/#token">Jak zdobyć token API</a>
+    <a href="/#jak-dziala">Jak to działa</a>
+    <a href="/#faq">FAQ</a>
+    <a href="https://mams.mediafy.com.pl" target="_blank" rel="noopener">MAMS →</a>
+  </nav>
+</div></div>
+
+<div class="wrap">
+  <h1>Opisy per marketplace z BASE</h1>
+  <p class="lead">Pobierz nazwy i opisy ofert dla wybranego kanału i języka do Excela — albo wgraj poprawiony plik z powrotem do BASE.</p>
+
+  <!-- ===== KROK 0: TOKEN ===== -->
+  <div class="card" id="card-token">
+    <div class="step"><span class="num">1</span><h2>Połącz z BASE</h2><span class="meta" id="token-meta"></span></div>
+    <div id="token-form">
+      <div class="token-row">
+        <input type="password" id="token" placeholder="Wklej token API z BASE (Konto i inne → Moje konto → API)" autocomplete="off" spellcheck="false">
+        <button class="btn btn-primary" id="btn-connect">Połącz</button>
+      </div>
+      <div class="row" style="margin-top:10px;justify-content:space-between">
+        <label class="cb"><input type="checkbox" id="remember"> Zapamiętaj token w tej przeglądarce</label>
+        <a href="/#token" style="font-size:13px">Nie masz tokena? Instrukcja krok po kroku →</a>
+      </div>
+      <p class="hint">Token leci prosto do API BASE przez nasz serwer i <b>nie jest nigdzie zapisywany</b>. Bez zaznaczonej opcji zniknie po zamknięciu karty.</p>
+      <div id="token-err" class="note err hide"></div>
+    </div>
+    <div id="token-ok" class="logged hide">
+      <span class="badge ok">● Połączono</span>
+      <span id="inv-wrap" style="flex:1;min-width:240px;display:flex;align-items:center;gap:10px">
+        <span style="font-size:14px;color:var(--ink-soft)">Katalog:</span>
+        <select id="inventory" style="flex:1"></select>
+      </span>
+      <button class="btn btn-ghost btn-sm" id="btn-logout">Rozłącz i usuń token</button>
+    </div>
+  </div>
+
+  <div class="tabs" id="tabs">
+    <button class="tab on" data-tab="export">Eksport z BASE</button>
+    <button class="tab" data-tab="import">Import do BASE</button>
+  </div>
+
+  <!-- ===== EKSPORT ===== -->
+  <div class="panel on" id="panel-export">
+    <div class="card dim" id="card-channel">
+      <div class="step"><span class="num">2</span><h2>Kanał sprzedaży i język</h2><span class="meta" id="channel-meta"></span></div>
+      <div class="grid" id="channels"></div>
+      <div id="langs-wrap" style="margin-top:14px" class="hide">
+        <div class="hint" style="margin:0 0 8px">Język oferty:</div>
+        <div class="row" id="langs"></div>
+      </div>
+      <p class="hint">Lista pochodzi z Twojego katalogu (metoda <span class="mono">getInventoryAvailableTextFieldKeys</span>). Jeśli brakuje kanału — nie ma dla niego pól tekstowych w BASE.</p>
+    </div>
+
+    <div class="card dim" id="card-fields">
+      <div class="step"><span class="num">3</span><h2>Pola i zakres</h2></div>
+      <div class="hint" style="margin:0 0 8px">Pola do eksportu:</div>
+      <div class="row" id="fields"></div>
+      <div class="hint" style="margin:14px 0 8px">Zakres produktów:</div>
+      <div class="row">
+        <button class="chip on" data-scope="all">Wszystkie produkty</button>
+        <button class="chip" data-scope="list">Wybrane SKU</button>
+      </div>
+      <div id="sku-wrap" class="hide" style="margin-top:10px">
+        <textarea id="sku" placeholder="Wklej listę SKU — każdy w nowej linii albo po przecinku"></textarea>
+        <div class="hint" id="sku-count">Nie wklejono jeszcze żadnych SKU</div>
+      </div>
+      <div class="hint" style="margin:14px 0 8px">Format pliku:</div>
+      <div class="row">
+        <button class="chip on" data-format="xlsx">Excel (XLSX)</button>
+        <button class="chip" data-format="csv">CSV</button>
+      </div>
+    </div>
+
+    <div class="card dim" id="card-run">
+      <button class="btn btn-primary btn-lg" id="btn-export" disabled>Wybierz kanał, żeby zacząć</button>
+      <div class="progress hide" id="exp-progress">
+        <div class="bar"><div class="fill" id="exp-fill"></div></div>
+        <div class="status" id="exp-status"></div>
+      </div>
+      <p class="hint" style="text-align:center">Kolumna <b>Źródło</b> w pliku mówi, czy wartość jest pisana pod ten kanał, czy schodzi z tłumaczenia albo z opisu bazowego.</p>
+    </div>
+  </div>
+
+  <!-- ===== IMPORT ===== -->
+  <div class="panel" id="panel-import">
+    <div class="card dim" id="card-file">
+      <div class="step"><span class="num">2</span><h2>Wgraj plik</h2><span class="meta" id="file-meta"></span></div>
+      <label class="drop" id="drop">
+        <input type="file" id="file" accept=".xlsx,.xls,.csv">
+        <b>Przeciągnij plik XLSX/CSV albo kliknij, żeby wybrać</b>
+        Najprościej: plik z eksportu, w którym poprawiłeś kolumny „Nazwa oferty" i „Opis oferty"
+      </label>
+      <div id="file-info" class="kv hide"></div>
+      <div id="file-err" class="note err hide"></div>
+      <p class="hint">Wymagana kolumna <b>SKU</b> (albo <b>ID BASE</b>). Puste komórki są pomijane — import niczego nie kasuje. Nazwa może mieć max 200 znaków.</p>
+    </div>
+
+    <div class="card dim" id="card-target">
+      <div class="step"><span class="num">3</span><h2>Gdzie zapisać</h2></div>
+      <div class="hint" style="margin:0 0 8px">Kanał sprzedaży:</div>
+      <div class="grid" id="i-channels"></div>
+      <div id="i-langs-wrap" style="margin-top:14px" class="hide">
+        <div class="hint" style="margin:0 0 8px">Język:</div>
+        <div class="row" id="i-langs"></div>
+      </div>
+      <div class="hint" style="margin:14px 0 8px">Poziom zapisu:</div>
+      <div class="row" id="i-levels">
+        <button class="chip on" data-level="channel">Nadpisanie dla tego kanału</button>
+        <button class="chip" data-level="lang">Tłumaczenie językowe (dla wszystkich kanałów w tym języku)</button>
+        <button class="chip" data-level="base">Wartość bazowa produktu</button>
+      </div>
+      <div class="hint" style="margin:14px 0 8px">Pola do importu:</div>
+      <div class="row" id="i-fields"></div>
+      <div style="margin-top:18px">
+        <button class="btn btn-ghost" id="btn-check" disabled>Sprawdź zmiany (nic jeszcze nie zapisuje)</button>
+      </div>
+      <div class="progress hide" id="chk-progress">
+        <div class="bar"><div class="fill" id="chk-fill"></div></div>
+        <div class="status" id="chk-status"></div>
+      </div>
+    </div>
+
+    <div class="card dim" id="card-preview">
+      <div class="step"><span class="num">4</span><h2>Podgląd zmian</h2></div>
+      <div class="stats" id="stats"></div>
+      <div id="preview-notes"></div>
+      <div class="tbl-wrap hide" id="tbl-wrap"><table id="tbl"><thead><tr><th>SKU</th><th>Pole</th><th>Klucz BASE</th><th>Było → Będzie</th></tr></thead><tbody></tbody></table></div>
+      <div class="row" style="margin-top:18px;justify-content:space-between">
+        <button class="btn btn-ghost" id="btn-backup" disabled>Pobierz kopię zapasową (stan sprzed importu)</button>
+        <button class="btn btn-danger" id="btn-write" disabled>Zapisz zmiany w BASE</button>
+      </div>
+      <div class="progress hide" id="wr-progress">
+        <div class="bar"><div class="fill" id="wr-fill"></div></div>
+        <div class="status" id="wr-status"></div>
+      </div>
+      <div id="wr-result"></div>
+    </div>
+  </div>
+
+  <p class="foot">Darmowe narzędzie od <a href="https://mams.mediafy.com.pl" target="_blank" rel="noopener">MAMS</a> · produkt Mediafy · <a href="/#faq">FAQ i bezpieczeństwo</a></p>
+</div>
+
+<!-- modal potwierdzenia -->
+<div class="modal-bg" id="modal">
+  <div class="modal">
+    <h3>Zapisać zmiany w BASE?</h3>
+    <p id="modal-text"></p>
+    <p>Zapis jest <b>nieodwracalny</b> po stronie BASE. Kopia zapasowa została pobrana automatycznie — w razie czego wgrasz ją tym samym importem.</p>
+    <label class="cb"><input type="checkbox" id="modal-ack"> Rozumiem, mam kopię zapasową</label>
+    <div class="row">
+      <button class="btn btn-ghost" id="modal-cancel">Anuluj</button>
+      <button class="btn btn-danger" id="modal-ok" disabled>Zapisz w BASE</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* =========================================================
+   Konfiguracja
+   ========================================================= */
+const API = '/api/base';
+const PAGE = 1000;         // getInventoryProductsList — strona
+const BATCH_READ = 100;    // getInventoryProductsData — ids na zapytanie
+const GAP_MS = 650;        // limit BASE: 100 zapytań / minutę
+const CELL_LIMIT = 32000;  // Excel: 32 767 znaków na komórkę
+const NAME_LIMIT = 200;
+
+const FIELD_LABELS = {
+  name: 'Nazwa oferty',
+  description: 'Opis oferty',
+  description_extra1: 'Opis dodatkowy 1',
+  description_extra2: 'Opis dodatkowy 2',
+  description_extra3: 'Opis dodatkowy 3',
+  description_extra4: 'Opis dodatkowy 4',
+};
+const FIELD_ORDER = Object.keys(FIELD_LABELS);
+const LABEL_TO_FIELD = Object.fromEntries(Object.entries(FIELD_LABELS).map(([k, v]) => [v.toLowerCase(), k]));
+const SRC_LABEL = { channel: 'marketplace', lang: 'język', base: 'bazowy', none: 'brak' };
+
+/* =========================================================
+   Stan
+   ========================================================= */
+const S = {
+  token: null,
+  inventories: [],
+  inventoryId: null,
+  keys: null,          // text_field_keys z BASE
+  channels: [],        // [{id, label, langs:[...]}]
+  defaultLangs: [],    // języki z kluczy bez integracji (name|de)
+  // eksport
+  channel: null, lang: null, fields: ['name', 'description'], scope: 'all', format: 'xlsx',
+  // import
+  file: null, rows: [], meta: null,
+  iChannel: null, iLang: null, iLevel: 'channel', iFields: ['name', 'description'],
+  plan: null, backupRows: null,
+  busy: false,
+};
+const $ = id => document.getElementById(id);
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+/* =========================================================
+   API
+   ========================================================= */
+async function bl(method, parameters) {
+  const r = await fetch(API, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-BL-Token': S.token },
+    body: JSON.stringify({ method, parameters: parameters || {} }),
+  });
+  let d;
+  try { d = await r.json(); } catch { throw new Error('Serwer odpowiedział błędem HTTP ' + r.status); }
+  if (d.status !== 'SUCCESS') {
+    const kod = d.error_code ? ' [' + d.error_code + ']' : '';
+    throw new Error((d.error_message || 'Nieznany błąd BASE') + kod);
+  }
+  return d;
+}
+
+/* =========================================================
+   Token / połączenie
+   ========================================================= */
+function loadSavedToken() {
+  try {
+    return localStorage.getItem('bl_token') || sessionStorage.getItem('bl_token') || null;
+  } catch { return null; }
+}
+function saveToken(t, remember) {
+  try {
+    sessionStorage.setItem('bl_token', t);
+    if (remember) localStorage.setItem('bl_token', t); else localStorage.removeItem('bl_token');
+  } catch {}
+}
+function clearToken() {
+  try { localStorage.removeItem('bl_token'); sessionStorage.removeItem('bl_token'); } catch {}
+}
+
+async function connect(token, remember) {
+  const err = $('token-err');
+  err.classList.add('hide');
+  $('btn-connect').disabled = true;
+  $('btn-connect').textContent = 'Łączę…';
+  try {
+    S.token = token;
+    const inv = await bl('getInventories');
+    S.inventories = inv.inventories || [];
+    if (!S.inventories.length) throw new Error('Na tym koncie nie ma żadnego katalogu produktów.');
+    saveToken(token, remember);
+    const sel = $('inventory');
+    sel.innerHTML = '';
+    S.inventories.forEach(i => {
+      const o = document.createElement('option');
+      o.value = i.inventory_id;
+      o.textContent = i.name + ' (ID ' + i.inventory_id + ')' + (i.is_default ? ' · domyślny' : '');
+      sel.appendChild(o);
+    });
+    const def = S.inventories.find(i => i.is_default) || S.inventories[0];
+    sel.value = def.inventory_id;
+    $('token-form').classList.add('hide');
+    $('token-ok').classList.remove('hide');
+    $('token-meta').textContent = 'token ****' + token.slice(-4);
+    await loadInventory(Number(def.inventory_id));
+  } catch (e) {
+    S.token = null;
+    err.textContent = 'Nie udało się połączyć: ' + e.message;
+    err.classList.remove('hide');
+  } finally {
+    $('btn-connect').disabled = false;
+    $('btn-connect').textContent = 'Połącz';
+  }
+}
+
+async function loadInventory(id) {
+  S.inventoryId = id;
+  S.channel = S.lang = S.iChannel = S.iLang = null;
+  $('channel-meta').textContent = 'wczytuję kanały…';
+  try {
+    const d = await bl('getInventoryAvailableTextFieldKeys', { inventory_id: id });
+    S.keys = d.text_field_keys || {};
+    buildChannels();
+    renderChannels('channels', 'langs', 'langs-wrap', 'channel', 'lang', refreshExportBtn);
+    renderChannels('i-channels', 'i-langs', 'i-langs-wrap', 'iChannel', 'iLang', refreshCheckBtn);
+    renderFields('fields', 'fields');
+    renderFields('i-fields', 'iFields');
+    ['card-channel', 'card-fields', 'card-run', 'card-file', 'card-target'].forEach(c => $(c).classList.remove('dim'));
+    $('channel-meta').textContent = S.channels.length + ' kanałów';
+    if (S.meta) applyMetaToImport();
+  } catch (e) {
+    $('channel-meta').textContent = '';
+    alert('Nie udało się pobrać listy pól: ' + e.message);
+  }
+}
+
+/* Z kluczy typu "name|de|amazon_594" składamy listę kanałów i języków. */
+function buildChannels() {
+  const map = new Map();
+  const defLangs = new Set();
+  const re = /^(name|description|description_extra[1-4]|features)\|([a-z]{2})(?:\|([a-z0-9]+_\d+))?$/;
+  for (const [key, label] of Object.entries(S.keys)) {
+    const m = key.match(re);
+    if (!m) continue;
+    const lang = m[2], integ = m[3];
+    if (!integ) { defLangs.add(lang); continue; }
+    if (!map.has(integ)) {
+      let nice = String(label).split(' - ')[0].trim();
+      map.set(integ, { id: integ, label: nice || integ, langs: new Set() });
+    }
+    map.get(integ).langs.add(lang);
+  }
+  S.channels = [...map.values()].map(c => ({ ...c, langs: [...c.langs].sort() }))
+    .sort((a, b) => a.label.localeCompare(b.label, 'pl'));
+  S.defaultLangs = [...defLangs].sort();
+  // pseudo-kanał: katalog bez nadpisań kanałowych
+  S.channels.push({ id: '', label: 'Katalog (bez kanału)', langs: ['', ...S.defaultLangs], pseudo: true });
+}
+
+function renderChannels(gridId, langsId, wrapId, chKey, langKey, after) {
+  const grid = $(gridId);
+  grid.innerHTML = '';
+  S.channels.forEach(ch => {
+    const b = document.createElement('button');
+    b.className = 'tile';
+    b.innerHTML = '<span class="n"></span><span class="k"></span>';
+    b.querySelector('.n').textContent = ch.label;
+    b.querySelector('.k').textContent = ch.pseudo ? 'pola bazowe i tłumaczenia' : ch.id;
+    b.onclick = () => {
+      if (S.busy) return;
+      grid.querySelectorAll('.tile').forEach(x => x.classList.remove('on'));
+      b.classList.add('on');
+      S[chKey] = ch;
+      S[langKey] = ch.langs[0];
+      renderLangs(langsId, wrapId, ch, langKey, after);
+      after();
+    };
+    grid.appendChild(b);
+  });
+}
+
+function renderLangs(langsId, wrapId, ch, langKey, after) {
+  const wrap = $(wrapId), box = $(langsId);
+  box.innerHTML = '';
+  const langs = ch.langs;
+  if (langs.length < 2) { wrap.classList.add('hide'); return; }
+  wrap.classList.remove('hide');
+  langs.forEach((l, i) => {
+    const b = document.createElement('button');
+    b.className = 'chip' + (i === 0 ? ' on' : '');
+    b.textContent = l ? l.toUpperCase() : 'domyślny';
+    b.onclick = () => {
+      if (S.busy) return;
+      box.querySelectorAll('.chip').forEach(x => x.classList.remove('on'));
+      b.classList.add('on');
+      S[langKey] = l;
+      after();
+    };
+    box.appendChild(b);
+  });
+}
+
+function renderFields(boxId, stateKey) {
+  const box = $(boxId);
+  box.innerHTML = '';
+  const available = FIELD_ORDER.filter(f => f in S.keys || f === 'name' || f === 'description');
+  available.forEach(f => {
+    const lab = document.createElement('label');
+    lab.className = 'chip' + (S[stateKey].includes(f) ? ' on' : '');
+    lab.innerHTML = '<input type="checkbox"> ' + FIELD_LABELS[f];
+    const cb = lab.querySelector('input');
+    cb.checked = S[stateKey].includes(f);
+    cb.onchange = () => {
+      if (S.busy) { cb.checked = !cb.checked; return; }
+      lab.classList.toggle('on', cb.checked);
+      S[stateKey] = available.filter(x => box.querySelectorAll('input')[available.indexOf(x)].checked);
+      refreshExportBtn(); refreshCheckBtn();
+    };
+    box.appendChild(lab);
+  });
+}
+
+/* =========================================================
+   Klucze i kaskada
+   ========================================================= */
+function cascade(tf, field, lang, integ) {
+  const tries = [];
+  if (integ && lang) tries.push([field + '|' + lang + '|' + integ, 'channel']);
+  if (lang) tries.push([field + '|' + lang, 'lang']);
+  tries.push([field, 'base']);
+  for (const [k, src] of tries) {
+    const v = tf && tf[k];
+    if (v !== undefined && v !== null && String(v) !== '') return { value: String(v), src };
+  }
+  return { value: '', src: 'none' };
+}
+function targetKey(field, level, lang, integ) {
+  if (level === 'channel' && integ && lang) return field + '|' + lang + '|' + integ;
+  if (level !== 'base' && lang) return field + '|' + lang;
+  return field;
+}
+
+/* =========================================================
+   Pobieranie produktów
+   ========================================================= */
+async function fetchAllProducts(onProgress) {
+  const out = [];
+  for (let page = 1; ; page++) {
+    onProgress && onProgress('Pobieram listę produktów… strona ' + page + ' (' + out.length + ' SKU)');
+    const d = await bl('getInventoryProductsList', { inventory_id: S.inventoryId, page });
+    const prods = d.products || {};
+    const arr = Object.entries(prods).map(([id, p]) => ({ id: Number(id), sku: p.sku || '', ean: p.ean || '', name: p.name || '' }));
+    out.push(...arr);
+    if (arr.length < PAGE) break;
+    await sleep(GAP_MS);
+  }
+  return out;
+}
+
+async function fetchData(ids, onProgress) {
+  const res = new Map();
+  for (let i = 0; i < ids.length; i += BATCH_READ) {
+    const chunk = ids.slice(i, i + BATCH_READ);
+    onProgress && onProgress(Math.min(i + chunk.length, ids.length), ids.length);
+    const d = await bl('getInventoryProductsData', { inventory_id: S.inventoryId, products: chunk });
+    for (const [id, p] of Object.entries(d.products || {})) res.set(Number(id), p);
+    if (i + BATCH_READ < ids.length) await sleep(GAP_MS);
+  }
+  return res;
+}
+
+function parseSkuList(text) {
+  return [...new Set(text.split(/[\s,;]+/).map(s => s.trim()).filter(Boolean))];
+}
+
+/* =========================================================
+   EKSPORT
+   ========================================================= */
+function refreshExportBtn() {
+  const b = $('btn-export');
+  if (!S.channel) { b.disabled = true; b.textContent = 'Wybierz kanał, żeby zacząć'; return; }
+  if (!S.fields.length) { b.disabled = true; b.textContent = 'Zaznacz przynajmniej jedno pole'; return; }
+  if (S.scope === 'list' && !parseSkuList($('sku').value).length) { b.disabled = true; b.textContent = 'Wklej listę SKU'; return; }
+  b.disabled = false;
+  b.textContent = 'Eksportuj — ' + S.channel.label + (S.lang ? ' · ' + S.lang.toUpperCase() : '');
+}
+
+document.querySelectorAll('[data-scope]').forEach(b => b.onclick = () => {
+  if (S.busy) return;
+  document.querySelectorAll('[data-scope]').forEach(x => x.classList.remove('on'));
+  b.classList.add('on'); S.scope = b.dataset.scope;
+  $('sku-wrap').classList.toggle('hide', S.scope !== 'list');
+  refreshExportBtn();
+});
+document.querySelectorAll('[data-format]').forEach(b => b.onclick = () => {
+  if (S.busy) return;
+  document.querySelectorAll('[data-format]').forEach(x => x.classList.remove('on'));
+  b.classList.add('on'); S.format = b.dataset.format;
+});
+$('sku').oninput = () => {
+  const n = parseSkuList($('sku').value).length;
+  $('sku-count').textContent = n ? 'Rozpoznano ' + n + ' SKU' : 'Nie wklejono jeszcze żadnych SKU';
+  refreshExportBtn();
+};
+
+function expStatus(t, cls) { const s = $('exp-status'); s.textContent = t; s.className = 'status' + (cls ? ' ' + cls : ''); }
+function expBar(p) { $('exp-fill').style.width = p + '%'; }
+
+$('btn-export').onclick = async () => {
+  S.busy = true; $('btn-export').disabled = true;
+  $('exp-progress').classList.remove('hide'); expBar(0);
+  try {
+    let products = await fetchAllProducts(t => expStatus(t));
+    let missing = [];
+    if (S.scope === 'list') {
+      const want = parseSkuList($('sku').value);
+      const bySku = new Map(products.map(p => [p.sku.toUpperCase(), p]));
+      products = [];
+      want.forEach(s => { const p = bySku.get(s.toUpperCase()); if (p) products.push(p); else missing.push(s); });
+      if (!products.length) throw new Error('Żadnego z podanych SKU nie ma w tym katalogu');
+    }
+    if (!products.length) throw new Error('Katalog jest pusty');
+
+    const integ = S.channel.pseudo ? '' : S.channel.id;
+    const lang = S.lang || '';
+    const data = await fetchData(products.map(p => p.id), (done, total) => {
+      expStatus('Pobieram opisy… ' + done + ' z ' + total);
+      expBar(Math.round(done / total * 100));
+    });
+
+    products.sort((a, b) => a.sku.localeCompare(b.sku, 'pl'));
+    const rows = products.map(p => {
+      const tf = (data.get(p.id) || {}).text_fields || {};
+      const row = { 'SKU': p.sku, 'ID BASE': p.id, 'EAN': p.ean };
+      S.fields.forEach(f => {
+        const c = cascade(tf, f, lang, integ);
+        let v = c.value;
+        const len = v.length;
+        if (len > CELL_LIMIT) v = v.slice(0, CELL_LIMIT) + ' […PRZYCIĘTE]';
+        row[FIELD_LABELS[f]] = v;
+        if (f === 'description') row['Znaków w opisie'] = len;
+        row['Źródło: ' + FIELD_LABELS[f]] = SRC_LABEL[c.src];
+      });
+      return row;
+    });
+
+    expStatus('Składam plik…');
+    const meta = {
+      narzedzie: 'Opisy z BASE — MAMS (mams.mediafy.com.pl)',
+      inventory_id: S.inventoryId,
+      integracja: integ,
+      kanal: S.channel.label,
+      jezyk: lang,
+      pola: S.fields.join(','),
+      data: new Date().toISOString(),
+    };
+    const fname = 'opisy_' + slug(S.channel.label) + (lang ? '_' + lang : '') + '_' + new Date().toISOString().slice(0, 10);
+    saveFile(rows, meta, fname, S.format);
+
+    let msg = 'Gotowe — ' + rows.length + ' produktów';
+    if (missing.length) msg += ' · nie znaleziono: ' + missing.slice(0, 20).join(', ') + (missing.length > 20 ? '…' : '');
+    expStatus(msg, 'ok'); expBar(100);
+  } catch (e) {
+    expStatus('Błąd: ' + e.message, 'err'); expBar(0);
+  } finally {
+    S.busy = false; refreshExportBtn();
+  }
+};
+
+function slug(s) { return s.toLowerCase().replace(/[^a-z0-9ąćęłńóśźż]+/g, '-').replace(/^-|-$/g, ''); }
+
+function saveFile(rows, meta, fname, format) {
+  const headers = Object.keys(rows[0]);
+  if (format === 'csv') {
+    const esc = v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
+    const body = [headers, ...rows.map(r => headers.map(h => r[h]))].map(r => r.map(esc).join(';')).join('\r\n');
+    download(new Blob(['﻿' + body], { type: 'text/csv;charset=utf-8' }), fname + '.csv');
+    return;
+  }
+  const ws = XLSX.utils.json_to_sheet(rows, { header: headers });
+  ws['!cols'] = headers.map(h => ({ wch: h === 'Opis oferty' || /^Opis dodatkowy/.test(h) ? 80 : h === 'Nazwa oferty' ? 45 : 14 }));
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Opisy');
+  if (meta) {
+    const ms = XLSX.utils.aoa_to_sheet([['klucz', 'wartość'], ...Object.entries(meta)]);
+    ms['!cols'] = [{ wch: 14 }, { wch: 60 }];
+    XLSX.utils.book_append_sheet(wb, ms, 'META');
+  }
+  XLSX.writeFile(wb, fname + '.xlsx');
+}
+function download(blob, name) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = name; a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1500);
+}
+
+/* =========================================================
+   IMPORT — plik
+   ========================================================= */
+const drop = $('drop');
+['dragenter', 'dragover'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('over'); }));
+['dragleave', 'drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('over'); }));
+drop.addEventListener('drop', e => { const f = e.dataTransfer.files[0]; if (f) readFile(f); });
+$('file').onchange = e => { const f = e.target.files[0]; if (f) readFile(f); };
+
+function readFile(file) {
+  const err = $('file-err'); err.classList.add('hide');
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const wb = XLSX.read(new Uint8Array(ev.target.result), { type: 'array', raw: true });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(ws, { defval: '', raw: false });
+      if (!rows.length) throw new Error('Pierwszy arkusz jest pusty');
+      const headers = Object.keys(rows[0]).map(h => h.trim());
+      const hasSku = headers.some(h => h.toUpperCase() === 'SKU');
+      const hasId = headers.some(h => h.toUpperCase() === 'ID BASE');
+      if (!hasSku && !hasId) throw new Error('Brak kolumny „SKU" albo „ID BASE"');
+      const fieldCols = headers.filter(h => LABEL_TO_FIELD[h.toLowerCase()]);
+      if (!fieldCols.length) throw new Error('Nie znalazłem żadnej kolumny z treścią (np. „Nazwa oferty", „Opis oferty")');
+
+      // META (jeśli plik pochodzi z eksportu)
+      let meta = null;
+      if (wb.Sheets['META']) {
+        meta = {};
+        XLSX.utils.sheet_to_json(wb.Sheets['META'], { header: 1 }).slice(1).forEach(r => { if (r[0]) meta[r[0]] = r[1]; });
+      }
+      S.file = file; S.rows = rows; S.meta = meta; S.plan = null;
+      S.iFields = fieldCols.map(h => LABEL_TO_FIELD[h.toLowerCase()]).filter(f => FIELD_ORDER.includes(f));
+      renderFields('i-fields', 'iFields');
+      const info = $('file-info');
+      info.innerHTML = '';
+      const kv = [['Plik', file.name], ['Wierszy', rows.length], ['Kolumny z treścią', fieldCols.join(', ')]];
+      if (meta && meta.kanal) kv.push(['Z eksportu', meta.kanal + (meta.jezyk ? ' · ' + String(meta.jezyk).toUpperCase() : '')]);
+      kv.forEach(([k, v]) => { const s = document.createElement('span'); s.innerHTML = k + ': <b></b>'; s.querySelector('b').textContent = v; info.appendChild(s); });
+      info.classList.remove('hide');
+      $('file-meta').textContent = rows.length + ' wierszy';
+      if (S.keys) applyMetaToImport();
+      resetPreview();
+      refreshCheckBtn();
+    } catch (e) {
+      err.textContent = 'Nie mogę wczytać pliku: ' + e.message; err.classList.remove('hide');
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function applyMetaToImport() {
+  if (!S.meta || !S.channels.length) return;
+  const integ = S.meta.integracja == null ? '' : String(S.meta.integracja);
+  const idx = S.channels.findIndex(c => (c.pseudo ? '' : c.id) === integ);
+  if (idx < 0) return;
+  const tiles = $('i-channels').querySelectorAll('.tile');
+  tiles[idx] && tiles[idx].click();
+  const lang = S.meta.jezyk == null ? '' : String(S.meta.jezyk);
+  const li = S.channels[idx].langs.indexOf(lang);
+  if (li >= 0) { const chips = $('i-langs').querySelectorAll('.chip'); chips[li] && chips[li].click(); }
+}
+
+document.querySelectorAll('[data-level]').forEach(b => b.onclick = () => {
+  if (S.busy) return;
+  document.querySelectorAll('[data-level]').forEach(x => x.classList.remove('on'));
+  b.classList.add('on'); S.iLevel = b.dataset.level; resetPreview(); refreshCheckBtn();
+});
+
+function refreshCheckBtn() {
+  const ok = S.rows.length && S.iChannel && S.iFields.length && !S.busy;
+  $('btn-check').disabled = !ok;
+}
+function resetPreview() {
+  S.plan = null; S.backupRows = null;
+  $('card-preview').classList.add('dim');
+  $('stats').innerHTML = ''; $('preview-notes').innerHTML = ''; $('wr-result').innerHTML = '';
+  $('tbl-wrap').classList.add('hide'); $('btn-write').disabled = true; $('btn-backup').disabled = true;
+  $('wr-progress').classList.add('hide');
+}
+
+/* =========================================================
+   IMPORT — sprawdzenie zmian
+   ========================================================= */
+function chkStatus(t, cls) { const s = $('chk-status'); s.textContent = t; s.className = 'status' + (cls ? ' ' + cls : ''); }
+function chkBar(p) { $('chk-fill').style.width = p + '%'; }
+
+$('btn-check').onclick = async () => {
+  S.busy = true; $('btn-check').disabled = true; resetPreview();
+  $('chk-progress').classList.remove('hide'); chkBar(0);
+  try {
+    const integ = S.iChannel.pseudo ? '' : S.iChannel.id;
+    const lang = S.iLang || '';
+    if (S.iLevel === 'channel' && !integ) throw new Error('Dla „Katalog (bez kanału)" wybierz poziom „tłumaczenie" albo „bazowy"');
+    if (S.iLevel === 'lang' && !lang) throw new Error('Wybierz język, żeby zapisać tłumaczenie');
+
+    const all = await fetchAllProducts(t => chkStatus(t));
+    const bySku = new Map(all.map(p => [p.sku.toUpperCase(), p]));
+    const byId = new Map(all.map(p => [p.id, p]));
+
+    // dopasowanie wierszy do produktów
+    const hdr = Object.keys(S.rows[0]);
+    const colSku = hdr.find(h => h.trim().toUpperCase() === 'SKU');
+    const colId = hdr.find(h => h.trim().toUpperCase() === 'ID BASE');
+    const colFor = f => hdr.find(h => LABEL_TO_FIELD[h.trim().toLowerCase()] === f);
+
+    const matched = [], notFound = [];
+    S.rows.forEach((r, i) => {
+      const sku = colSku ? String(r[colSku] || '').trim() : '';
+      const id = colId ? Number(String(r[colId] || '').trim()) : 0;
+      let p = null;
+      if (sku) p = bySku.get(sku.toUpperCase());
+      if (!p && id) p = byId.get(id);
+      if (!p) { if (sku || id) notFound.push(sku || ('ID ' + id)); return; }
+      matched.push({ row: r, p, line: i + 2 });
+    });
+    if (!matched.length) throw new Error('Żaden wiersz nie pasuje do produktów w tym katalogu');
+
+    const ids = [...new Set(matched.map(m => m.p.id))];
+    const data = await fetchData(ids, (done, total) => { chkStatus('Porównuję z BASE… ' + done + ' z ' + total); chkBar(Math.round(done / total * 100)); });
+
+    const changes = [], tooLong = [];
+    let same = 0, empty = 0;
+    const backup = [];
+    matched.forEach(m => {
+      const tf = (data.get(m.p.id) || {}).text_fields || {};
+      const b = { 'SKU': m.p.sku, 'ID BASE': m.p.id };
+      let touched = false;
+      S.iFields.forEach(f => {
+        const col = colFor(f); if (!col) return;
+        const nv = String(m.row[col] == null ? '' : m.row[col]).replace(/\r\n/g, '\n').trim();
+        const key = targetKey(f, S.iLevel, lang, integ);
+        const cur = tf[key] == null ? '' : String(tf[key]);
+        b[FIELD_LABELS[f]] = cur; b['Klucz: ' + FIELD_LABELS[f]] = key;
+        if (!nv) { empty++; return; }
+        const norm = v => String(v).replace(/\r\n/g, '\n').trim();
+        // bez zmian, jeśli równa się wartości pod kluczem docelowym ALBO wartości efektywnej (kaskada),
+        // czyli tej, którą eksport wpisał do pliku — inaczej nieedytowany plik tworzyłby nadpisania.
+        if (nv === norm(cur) || nv === norm(cascade(tf, f, lang, integ).value)) { same++; return; }
+        if (f === 'name' && nv.length > NAME_LIMIT) { tooLong.push(m.p.sku); return; }
+        changes.push({ id: m.p.id, sku: m.p.sku, field: f, key, from: cascade(tf, f, lang, integ).value, to: nv });
+        touched = true;
+      });
+      if (touched) backup.push(b);
+    });
+
+    S.plan = { changes, integ, lang, notFound, tooLong, same, empty, products: new Set(changes.map(c => c.id)).size };
+    S.backupRows = backup;
+    renderPreview();
+    chkStatus(changes.length ? 'Sprawdzone — nic nie zostało jeszcze zapisane' : 'Brak zmian do zapisania', changes.length ? 'ok' : '');
+    chkBar(100);
+  } catch (e) {
+    chkStatus('Błąd: ' + e.message, 'err'); chkBar(0);
+  } finally {
+    S.busy = false; refreshCheckBtn();
+  }
+};
+
+function renderPreview() {
+  const P = S.plan;
+  $('card-preview').classList.remove('dim');
+  const stats = $('stats'); stats.innerHTML = '';
+  [
+    ['accent', P.changes.length, 'pól do zapisania'],
+    ['', P.products, 'produktów ze zmianami'],
+    ['', P.same, 'bez zmian'],
+    ['', P.empty, 'pustych (pominięte)'],
+    [P.notFound.length ? 'warn' : '', P.notFound.length, 'nie znaleziono w BASE'],
+  ].forEach(([cls, v, l]) => {
+    const d = document.createElement('div'); d.className = 'stat ' + cls;
+    d.innerHTML = '<div class="v">' + v + '</div><div class="l">' + l + '</div>'; stats.appendChild(d);
+  });
+  const notes = $('preview-notes'); notes.innerHTML = '';
+  if (P.notFound.length) note(notes, 'warn', 'Nie znaleziono w katalogu: ' + P.notFound.slice(0, 30).join(', ') + (P.notFound.length > 30 ? ' … (+' + (P.notFound.length - 30) + ')' : ''));
+  if (P.tooLong.length) note(notes, 'warn', 'Nazwa dłuższa niż ' + NAME_LIMIT + ' znaków — pominięte: ' + P.tooLong.slice(0, 30).join(', '));
+  if (P.changes.length) {
+    note(notes, 'info', 'Zapis pod kluczami typu <span class="mono">' + escapeHtml(P.changes[0].key) + '</span>. Przy limicie BASE (100 zapytań/min) import ' + P.products + ' produktów zajmie ok. ' + Math.ceil(P.products * GAP_MS / 1000 / 60) + ' min.');
+    const tb = $('tbl').querySelector('tbody'); tb.innerHTML = '';
+    P.changes.slice(0, 300).forEach(c => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = '<td class="mono"></td><td></td><td class="mono"></td><td class="diff"><span class="old"></span><span class="new"></span></td>';
+      const td = tr.querySelectorAll('td');
+      td[0].textContent = c.sku; td[1].textContent = FIELD_LABELS[c.field]; td[2].textContent = c.key;
+      tr.querySelector('.old').textContent = c.from ? trunc(c.from, 220) : '(puste)';
+      tr.querySelector('.new').textContent = trunc(c.to, 220);
+      tb.appendChild(tr);
+    });
+    if (P.changes.length > 300) { const tr = document.createElement('tr'); tr.innerHTML = '<td colspan="4" style="color:var(--muted)">… i ' + (P.changes.length - 300) + ' kolejnych</td>'; tb.appendChild(tr); }
+    $('tbl-wrap').classList.remove('hide');
+    $('btn-write').disabled = false; $('btn-backup').disabled = false;
+  }
+}
+function note(box, cls, html) { const d = document.createElement('div'); d.className = 'note ' + cls; d.innerHTML = html; box.appendChild(d); }
+function trunc(s, n) { s = String(s); return s.length > n ? s.slice(0, n) + '…' : s; }
+function escapeHtml(s) { return String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+
+function downloadBackup() {
+  if (!S.backupRows || !S.backupRows.length) return;
+  const meta = { narzedzie: 'Opisy z BASE — kopia zapasowa sprzed importu', inventory_id: S.inventoryId, integracja: S.plan.integ, kanal: S.iChannel.label, jezyk: S.plan.lang, poziom: S.iLevel, data: new Date().toISOString() };
+  saveFile(S.backupRows, meta, 'KOPIA-ZAPASOWA_' + slug(S.iChannel.label) + '_' + new Date().toISOString().replace(/[:T]/g, '-').slice(0, 16), 'xlsx');
+}
+$('btn-backup').onclick = downloadBackup;
+
+/* =========================================================
+   IMPORT — zapis
+   ========================================================= */
+$('btn-write').onclick = () => {
+  const P = S.plan; if (!P || !P.changes.length) return;
+  $('modal-text').textContent = 'Zapiszę ' + P.changes.length + ' pól w ' + P.products + ' produktach — kanał: ' + S.iChannel.label + (P.lang ? ' · ' + P.lang.toUpperCase() : '') + ', katalog ID ' + S.inventoryId + '.';
+  $('modal-ack').checked = false; $('modal-ok').disabled = true;
+  $('modal').classList.add('on');
+  downloadBackup();
+};
+$('modal-ack').onchange = () => $('modal-ok').disabled = !$('modal-ack').checked;
+$('modal-cancel').onclick = () => $('modal').classList.remove('on');
+$('modal-ok').onclick = async () => { $('modal').classList.remove('on'); await writeChanges(); };
+
+function wrStatus(t, cls) { const s = $('wr-status'); s.textContent = t; s.className = 'status' + (cls ? ' ' + cls : ''); }
+function wrBar(p) { $('wr-fill').style.width = p + '%'; }
+
+async function writeChanges() {
+  const P = S.plan;
+  if (!P || !P.changes.length) return;
+  S.busy = true; $('btn-write').disabled = true; $('btn-check').disabled = true;
+  $('wr-progress').classList.remove('hide'); wrBar(0);
+  // grupujemy zmiany per produkt → jedno zapytanie na produkt
+  const perProduct = new Map();
+  P.changes.forEach(c => { if (!perProduct.has(c.id)) perProduct.set(c.id, { sku: c.sku, text_fields: {} }); perProduct.get(c.id).text_fields[c.key] = c.to; });
+  const items = [...perProduct.entries()];
+  const log = []; let ok = 0, fail = 0;
+  for (let i = 0; i < items.length; i++) {
+    const [id, it] = items[i];
+    wrStatus('Zapisuję… ' + (i + 1) + ' z ' + items.length + ' (' + it.sku + ')');
+    try {
+      const d = await bl('addInventoryProduct', { inventory_id: S.inventoryId, product_id: id, text_fields: it.text_fields });
+      ok++; log.push({ 'SKU': it.sku, 'ID BASE': id, 'Status': 'OK', 'Pola': Object.keys(it.text_fields).join(', '), 'Uwagi': d.warnings && Object.keys(d.warnings).length ? JSON.stringify(d.warnings) : '' });
+    } catch (e) {
+      fail++; log.push({ 'SKU': it.sku, 'ID BASE': id, 'Status': 'BŁĄD', 'Pola': Object.keys(it.text_fields).join(', '), 'Uwagi': e.message });
+      if (/token|auth/i.test(e.message)) { wrStatus('Przerwano: ' + e.message, 'err'); break; }
+    }
+    wrBar(Math.round((i + 1) / items.length * 100));
+    if (i + 1 < items.length) await sleep(GAP_MS);
+  }
+  wrStatus('Zapisano ' + ok + ' produktów' + (fail ? ', błędów: ' + fail : ''), fail ? 'err' : 'ok');
+  const res = $('wr-result'); res.innerHTML = '';
+  const b = document.createElement('button'); b.className = 'btn btn-ghost btn-sm'; b.style.marginTop = '12px';
+  b.textContent = 'Pobierz raport importu (XLSX)';
+  b.onclick = () => saveFile(log, null, 'RAPORT-IMPORTU_' + new Date().toISOString().replace(/[:T]/g, '-').slice(0, 16), 'xlsx');
+  res.appendChild(b);
+  S.busy = false; S.plan = null; refreshCheckBtn();
+}
+
+/* =========================================================
+   Zakładki, start
+   ========================================================= */
+document.querySelectorAll('.tab').forEach(t => t.onclick = () => {
+  document.querySelectorAll('.tab').forEach(x => x.classList.remove('on')); t.classList.add('on');
+  document.querySelectorAll('.panel').forEach(p => p.classList.toggle('on', p.id === 'panel-' + t.dataset.tab));
+});
+$('btn-connect').onclick = () => { const t = $('token').value.trim(); if (t) connect(t, $('remember').checked); };
+$('token').addEventListener('keydown', e => { if (e.key === 'Enter') $('btn-connect').click(); });
+$('btn-logout').onclick = () => { clearToken(); location.reload(); };
+$('inventory').onchange = e => loadInventory(Number(e.target.value));
+
+(function init() {
+  const saved = loadSavedToken();
+  if (saved) {
+    let remembered = false; try { remembered = !!localStorage.getItem('bl_token'); } catch {}
+    $('remember').checked = remembered;
+    $('token').value = saved;
+    connect(saved, remembered);
+  }
+})();
+</script>
+</body>
+</html>
