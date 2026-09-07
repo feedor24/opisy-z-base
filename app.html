@@ -242,11 +242,11 @@ label.cb input{width:16px;height:16px;accent-color:var(--primary)}
       <p class="hint">Dla Temu i Amazona dochodzą automatycznie kolumny <b>Parametr: …</b> — tytuł, opis i bullet pointy trzymane przez BASE w parametrach produktu (np. <span class="mono">temu_bullet_1_pl</span>, <span class="mono">amazon_bullet_1_de</span>).</p>
       <div class="hint" style="margin:14px 0 8px">Zakres produktów:</div>
       <div class="row">
-        <button class="chip on" data-scope="listed" id="scope-listed">Wystawione na tym kanale</button>
-        <button class="chip" data-scope="all">Wszystkie produkty w katalogu</button>
+        <button class="chip on" data-scope="all">Wszystkie produkty w katalogu</button>
+        <button class="chip hide" data-scope="listed" id="scope-listed">Wystawione na tym kanale</button>
         <button class="chip" data-scope="list">Wybrane SKU</button>
       </div>
-      <p class="hint" id="scope-hint">„Wystawione" = produkty, które mają w BASE przypisaną kategorię marketplace dla tego kanału (BASE wymaga jej, żeby wystawić ofertę). API BASE nie udostępnia listy ofert wprost, więc to najlepszy dostępny sygnał. W pliku i tak dostajesz kolumnę <b>Przypisanie do kanału</b>.</p>
+      <p class="hint" id="scope-hint">W pliku zawsze dostajesz kolumnę <b>Przypisanie do kanału</b> — czy produkt ma w BASE kategorię marketplace dla tego kanału i treści pod niego.</p>
       <div id="sku-wrap" class="hide" style="margin-top:10px">
         <textarea id="sku" placeholder="Wklej listę SKU — każdy w nowej linii albo po przecinku"></textarea>
         <div class="hint" id="sku-count">Nie wklejono jeszcze żadnych SKU</div>
@@ -394,7 +394,8 @@ const S = {
   channels: [],        // [{id, label, langs:[...]}]
   defaultLangs: [],    // języki z kluczy bez integracji (name|de)
   // eksport
-  channel: null, lang: null, fields: ['name', 'description'], scope: 'listed', format: 'xlsx',
+  channel: null, lang: null, fields: ['name', 'description'], scope: 'all', format: 'xlsx',
+  probe: null, productsCache: null,
   lastAudit: null, lastReport: null, lastCtx: null,
   // import
   file: null, rows: [], meta: null,
@@ -547,6 +548,7 @@ function renderChannels(gridId, langsId, wrapId, chKey, langKey, after) {
       S[langKey] = ch.langs[0];
       renderLangs(langsId, wrapId, ch, langKey, after);
       after();
+      if (gridId === 'channels') probeChannel(ch);
     };
     grid.appendChild(b);
   });
@@ -664,6 +666,7 @@ function targetKey(field, level, lang, integ) {
    Pobieranie produktów
    ========================================================= */
 async function fetchAllProducts(onProgress) {
+  if (S.productsCache && S.productsCache.inv === S.inventoryId && Date.now() - S.productsCache.at < 10 * 60 * 1000) return S.productsCache.list.slice();
   const out = [];
   for (let page = 1; ; page++) {
     onProgress && onProgress('Pobieram listę produktów… strona ' + page + ' (' + out.length + ' SKU)');
@@ -674,8 +677,45 @@ async function fetchAllProducts(onProgress) {
     if (arr.length < PAGE) break;
     await sleep(GAP_MS);
   }
+  S.productsCache = { inv: S.inventoryId, at: Date.now(), list: out.slice() };
   return out;
 }
+
+/* Szybka próbka: czy dla tego kanału są w ogóle przypisane kategorie marketplace?
+   Jeśli tak — pokazujemy zakres „Wystawione" (i robimy go domyślnym). Jeśli nie — nie tracimy czasu użytkownika. */
+async function probeChannel(ch) {
+  const integ = ch.pseudo ? '' : ch.id;
+  const hint = $('scope-hint'), listedBtn = $('scope-listed');
+  const setScope = sc => { S.scope = sc; document.querySelectorAll('[data-scope]').forEach(x => x.classList.toggle('on', x.dataset.scope === sc)); $('sku-wrap').classList.toggle('hide', sc !== 'list'); };
+  listedBtn.classList.add('hide');
+  if (S.scope === 'listed') setScope('all');
+  if (!integ) { hint.textContent = 'Katalog bez kanału: eksportujemy pola bazowe i tłumaczenia dla całego katalogu.'; return; }
+  const token = ++probeSeq;
+  hint.textContent = 'Sprawdzam, czy BASE ma przypisane kategorie ' + ch.label + ' (próbka)…';
+  try {
+    const list = await fetchAllProducts(() => {});
+    if (token !== probeSeq) return;
+    const sample = list.slice(0, 100).map(p => p.id);
+    const d = await bl('getInventoryProductsData', { inventory_id: S.inventoryId, products: sample, include_marketplace_categories: true });
+    if (token !== probeSeq) return;
+    let hits = 0;
+    for (const p of Object.values(d.products || {})) if (channelAssignment(p.text_fields || {}, integ).cat) hits++;
+    S.probe = { integ, hits, sample: sample.length };
+    if (hits > 0) {
+      listedBtn.classList.remove('hide');
+      listedBtn.textContent = 'Wystawione na tym kanale';
+      setScope('listed');
+      hint.innerHTML = '„Wystawione" = produkty z przypisaną w BASE kategorią marketplace dla tego kanału (BASE wymaga jej do wystawienia oferty). W próbce ' + sample.length + ' produktów: <b>' + hits + '</b> z kategorią. API BASE nie udostępnia listy ofert wprost, więc to najlepszy dostępny sygnał — w pliku i tak masz kolumnę <b>Przypisanie do kanału</b>.';
+    } else {
+      hint.innerHTML = 'W próbce ' + sample.length + ' produktów żaden nie ma w BASE przypisanej kategorii dla tego kanału — nie da się odróżnić wystawionych od niewystawionych. Eksportujemy <b>cały katalog</b>; w pliku masz kolumnę <b>Przypisanie do kanału</b> (treści pod kanał). Jeśli masz listę ofert z BASE lub z marketplace\'u, wklej SKU w „Wybrane SKU".';
+    }
+  } catch (e) {
+    if (token !== probeSeq) return;
+    hint.textContent = 'Nie udało się sprawdzić kategorii (' + e.message + ') — eksportujemy cały katalog.';
+  }
+  refreshExportBtn();
+}
+let probeSeq = 0;
 
 async function fetchData(ids, onProgress) {
   const res = new Map();
@@ -701,12 +741,6 @@ function refreshExportBtn() {
   if (!S.channel) { b.disabled = true; b.textContent = 'Wybierz kanał, żeby zacząć'; return; }
   if (!S.fields.length) { b.disabled = true; b.textContent = 'Zaznacz przynajmniej jedno pole'; return; }
   if (S.scope === 'list' && !parseSkuList($('sku').value).length) { b.disabled = true; b.textContent = 'Wklej listę SKU'; return; }
-  // pseudo-kanał (katalog) nie ma pojęcia "wystawione"
-  const listedBtn = $('scope-listed');
-  if (S.channel.pseudo) {
-    listedBtn.classList.add('hide'); $('scope-hint').classList.add('hide');
-    if (S.scope === 'listed') { S.scope = 'all'; document.querySelectorAll('[data-scope]').forEach(x => x.classList.toggle('on', x.dataset.scope === 'all')); }
-  } else { listedBtn.classList.remove('hide'); $('scope-hint').classList.remove('hide'); }
   b.disabled = false;
   b.textContent = 'Eksportuj — ' + S.channel.label + (S.lang ? ' · ' + S.lang.toUpperCase() : '');
 }
@@ -755,13 +789,15 @@ $('btn-export').onclick = async () => {
     });
 
     products.sort((a, b) => a.sku.localeCompare(b.sku, 'pl'));
+    const fetchedProducts = products.slice();
+    let fellBack = false;
     // zakres "wystawione": tylko produkty z przypisaną kategorią marketplace dla tego kanału
     let skippedNotListed = 0;
     if (S.scope === 'listed' && integ) {
       const before = products.length;
       products = products.filter(p => channelAssignment(((data.get(p.id) || {}).text_fields || {}), integ).cat);
       skippedNotListed = before - products.length;
-      if (!products.length) throw new Error('Żaden produkt nie ma przypisanej kategorii dla tego kanału. Wybierz zakres „Wszystkie produkty w katalogu".');
+      if (!products.length) { products = fetchedProducts; skippedNotListed = 0; fellBack = true; }
     }
     const auditItems = [];
     const paramCols = new Set();
@@ -810,12 +846,13 @@ $('btn-export').onclick = async () => {
     let msg = 'Gotowe — ' + rows.length + ' produktów';
     if (paramCols.size) msg += ' · ' + paramCols.size + ' parametrów marketplace (kolumny „Parametr: …")';
     if (skippedNotListed) msg += ' (pominięto ' + skippedNotListed + ' bez kategorii dla tego kanału)';
+    if (fellBack) msg += ' — brak przypisanych kategorii dla tego kanału, więc wyeksportowano cały katalog';
     if (missing.length) msg += ' · nie znaleziono: ' + missing.slice(0, 20).join(', ') + (missing.length > 20 ? '…' : '');
     expStatus(msg, 'ok'); expBar(100);
 
     // audyt (tylko gdy eksportujemy nazwę i opis)
     if (S.fields.includes('name') && S.fields.includes('description')) {
-      const scopeLabel = S.scope === 'listed' ? 'oferty wystawione na kanale (z przypisaną kategorią)' : S.scope === 'list' ? 'wybrane SKU' : 'wszystkie produkty w katalogu';
+      const scopeLabel = (S.scope === 'listed' && !fellBack) ? 'oferty wystawione na kanale (z przypisaną kategorią)' : S.scope === 'list' ? 'wybrane SKU' : 'wszystkie produkty w katalogu';
       const invName = (S.inventories.find(i => Number(i.inventory_id) === Number(S.inventoryId)) || {}).name || String(S.inventoryId);
       const ctx = { channelLabel: S.channel.label, channelType: integ.replace(/_\d+$/, ''), lang, scope: S.scope, scopeLabel, inventoryName: invName, date: new Date().toLocaleDateString('pl-PL', { day: 'numeric', month: 'long', year: 'numeric' }), trackUrl: location.origin + '/api/track' };
       try { showAudit(OpisyAudit.computeAudit(auditItems, ctx), ctx); } catch (e) { console.warn('audyt', e); }
