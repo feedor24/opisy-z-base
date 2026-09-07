@@ -154,6 +154,12 @@ label.cb{display:inline-flex;align-items:center;gap:8px;font-size:14px;color:var
 label.cb input{width:16px;height:16px;accent-color:var(--primary)}
 @media (max-width:640px){
   .top-links{display:none}
+  .tabs{width:100%}.tab{flex:1;padding:10px 8px}
+  .grid{grid-template-columns:1fr 1fr}
+  .wrap{padding:20px 14px 60px}
+  .stats{grid-template-columns:1fr 1fr}
+  .btn-lg{white-space:normal;line-height:1.3}
+  .step .meta{display:none}
   h1{font-size:24px}
   .card{padding:18px 16px}
   .token-row{flex-direction:column}
@@ -218,7 +224,7 @@ label.cb input{width:16px;height:16px;accent-color:var(--primary)}
         <div class="hint" style="margin:0 0 8px">Język oferty:</div>
         <div class="row" id="langs"></div>
       </div>
-      <p class="hint">Lista pochodzi z Twojego katalogu (metoda <span class="mono">getInventoryAvailableTextFieldKeys</span>). Jeśli brakuje kanału — nie ma dla niego pól tekstowych w BASE.</p>
+      <p class="hint">Lista pochodzi z Twojego katalogu. Kafelek z nazwą konta (np. <b>Allegro · pro_okucia</b>) to nadpisania dla tego konkretnego konta; <b>wszystkie konta</b> to nadpisanie wspólne dla całej integracji. Jeśli brakuje kanału — nie ma dla niego pól tekstowych w BASE.</p>
     </div>
 
     <div class="card dim" id="card-fields">
@@ -474,13 +480,18 @@ function buildChannels() {
     const lang = m[2], integ = m[3];
     if (!integ) { defLangs.add(lang); continue; }
     if (!map.has(integ)) {
-      let nice = String(label).split(' - ')[0].trim();
-      map.set(integ, { id: integ, label: nice || integ, langs: new Set() });
+      // "Allegro [pro_okucia] - Nazwa produktu (PL)" → nazwa + konto
+      const head = String(label).split(' - ')[0].trim();
+      const mm = head.match(/^(.*?)\s*\[(.+)\]\s*$/);
+      const name = (mm ? mm[1] : head) || integ;
+      const acct = mm ? mm[2] : '';
+      const all = /_0$/.test(integ);
+      map.set(integ, { id: integ, name, acct, all, label: name + (all ? ' · wszystkie konta' : acct ? ' · ' + acct : ''), langs: new Set() });
     }
     map.get(integ).langs.add(lang);
   }
   S.channels = [...map.values()].map(c => ({ ...c, langs: [...c.langs].sort() }))
-    .sort((a, b) => a.label.localeCompare(b.label, 'pl'));
+    .sort((a, b) => a.name.localeCompare(b.name, 'pl') || (a.all - b.all) || a.label.localeCompare(b.label, 'pl'));
   S.defaultLangs = [...defLangs].sort();
   // pseudo-kanał: katalog bez nadpisań kanałowych
   S.channels.push({ id: '', label: 'Katalog (bez kanału)', langs: ['', ...S.defaultLangs], pseudo: true });
@@ -493,8 +504,8 @@ function renderChannels(gridId, langsId, wrapId, chKey, langKey, after) {
     const b = document.createElement('button');
     b.className = 'tile';
     b.innerHTML = '<span class="n"></span><span class="k"></span>';
-    b.querySelector('.n').textContent = ch.label;
-    b.querySelector('.k').textContent = ch.pseudo ? 'pola bazowe i tłumaczenia' : ch.id;
+    b.querySelector('.n').textContent = ch.pseudo ? ch.label : ch.name;
+    b.querySelector('.k').textContent = ch.pseudo ? 'pola bazowe i tłumaczenia' : (ch.all ? 'wszystkie konta · ' : (ch.acct ? ch.acct + ' · ' : '')) + ch.id;
     b.onclick = () => {
       if (S.busy) return;
       grid.querySelectorAll('.tile').forEach(x => x.classList.remove('on'));

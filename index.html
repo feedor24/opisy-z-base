@@ -9,7 +9,9 @@
 <meta property="og:description" content="Wyciągnij nazwy i opisy ofert z BASE dla wybranego marketplace'u i języka do XLSX. Popraw. Wgraj z powrotem. Bez rejestracji, token nie jest zapisywany. Za darmo.">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="pl_PL">
-<meta property="og:image" content="og.png">
+<meta property="og:image" content="https://opisy-z-base.vercel.app/og.png">
+<meta property="og:url" content="https://opisy-z-base.vercel.app/">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="fonts.css">
 <style>
@@ -395,22 +397,22 @@ footer .tm{grid-column:1/-1;font-size:13px;max-width:80ch}
 <section id="token" style="background:var(--surface)"><div class="wrap">
   <div class="eyebrow">Instrukcja</div>
   <h2>Jak zdobyć token API z BASE — krok po kroku</h2>
-  <p class="lead-sec">Zajmuje niecałą minutę. Token generujesz w panelu BASE, wklejasz do narzędzia i gotowe. Potrzebujesz dostępu do ustawień konta (właściciel albo użytkownik z uprawnieniami do API).</p>
+  <p class="lead-sec">Zajmuje niecałą minutę. Token generujesz w panelu BASE, wklejasz do narzędzia i gotowe. Potrzebujesz dostępu do ustawień konta (właściciel albo pracownik z uprawnieniami do zakładki API). Zrzuty poniżej pochodzą z panelu BASE, wrzesień 2026.</p>
   <div class="guide">
     <div class="gstep">
-      <div class="gtext"><span class="n">KROK 1</span><h3>Wejdź w ustawienia konta</h3><p>Zaloguj się do panelu BASE. W lewym menu, na samym dole, otwórz:</p><div class="path"><span>Konto i inne</span><i>→</i><span>Moje konto</span></div><p>Zobaczysz zakładki z ustawieniami konta.</p></div>
+      <div class="gtext"><span class="n">KROK 1</span><h3>Wejdź w ustawienia konta</h3><p>Zaloguj się do panelu BASE i kliknij swoje imię (awatar) w prawym górnym rogu. Z menu wybierz:</p><div class="path"><span>Twoje imię</span><i>→</i><span>Moje konto</span></div><p>Otworzy się strona z zakładkami ustawień konta.</p></div>
       <div class="shot" data-shot="token-1">Zrzut ekranu: menu „Konto i inne → Moje konto"</div>
     </div>
     <div class="gstep">
-      <div class="gtext"><span class="n">KROK 2</span><h3>Otwórz zakładkę API</h3><div class="path"><span>Moje konto</span><i>→</i><span>API</span></div><p>Tu znajdziesz listę tokenów API podpiętych do konta. Każda integracja (sklep, kurier, narzędzie zewnętrzne) może mieć własny.</p></div>
+      <div class="gtext"><span class="n">KROK 2</span><h3>Otwórz zakładkę API</h3><div class="path"><span>Moje konto</span><i>→</i><span>API</span></div><p>W górnym pasku zakładek kliknij <b>API</b>. Zobaczysz listę tokenów podpiętych do konta (każda integracja może mieć własny) oraz logi wywołań API — tam później sprawdzisz, co narzędzie robiło.</p></div>
       <div class="shot" data-shot="token-2">Zrzut ekranu: zakładka „API" w ustawieniach konta</div>
     </div>
     <div class="gstep">
-      <div class="gtext"><span class="n">KROK 3</span><h3>Wygeneruj nowy token</h3><p>Kliknij przycisk dodawania tokena. W polu nazwy wpisz coś, po czym go później rozpoznasz, np. <span class="mono">Opisy MAMS</span>. Jeśli BASE pyta o uprawnienia, wystarczy dostęp do <b>Produktów / Katalogu</b> (odczyt i zapis). Zamówienia, magazyn i faktury nie są potrzebne.</p></div>
+      <div class="gtext"><span class="n">KROK 3</span><h3>Wygeneruj nowy token</h3><p>Kliknij zielony przycisk <b>Dodaj Token API</b> w prawym górnym rogu listy. W polu <b>Nazwa</b> wpisz coś, po czym go później rozpoznasz, np. <span class="mono">Opisy MAMS</span>.</p><p><b>Uprawnienia API:</b> do samego eksportu wystarczy <b>Odczyt</b>. Jeśli chcesz też importować poprawione opisy, wybierz <b>Pełny</b>. Kliknij <b>Zapisz</b>.</p></div>
       <div class="shot" data-shot="token-3">Zrzut ekranu: formularz nowego tokena z nazwą „Opisy MAMS"</div>
     </div>
     <div class="gstep">
-      <div class="gtext"><span class="n">KROK 4</span><h3>Skopiuj token</h3><p>Token to długi ciąg znaków w formacie <span class="mono">1234567-8901234-ABCDEF…</span>. Skopiuj go w całości — ikoną kopiowania obok tokena albo zaznacz i <span class="mono">Ctrl+C</span>.</p><p>Traktuj go jak hasło: nie wysyłaj mailem, nie wklejaj na czacie.</p></div>
+      <div class="gtext"><span class="n">KROK 4</span><h3>Skopiuj token — pokazuje się tylko raz</h3><p>Po zapisaniu BASE wyświetla token w zielonym polu. Kliknij ikonę <b>Kopiuj do schowka</b> obok niego (ikona oka pokazuje pełną wartość).</p><p><b>Uwaga:</b> po zamknięciu okna albo odświeżeniu strony tokenu nie da się już podejrzeć. Jeśli go zgubisz, po prostu wygenerujesz nowy. Traktuj go jak hasło: nie wysyłaj mailem, nie wklejaj na czacie.</p></div>
       <div class="shot" data-shot="token-4">Zrzut ekranu: wygenerowany token z ikoną kopiowania</div>
     </div>
     <div class="gstep">
