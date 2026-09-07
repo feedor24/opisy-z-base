@@ -239,6 +239,7 @@ label.cb input{width:16px;height:16px;accent-color:var(--primary)}
       <div class="step"><span class="num">3</span><h2>Pola i zakres</h2></div>
       <div class="hint" style="margin:0 0 8px">Pola do eksportu:</div>
       <div class="row" id="fields"></div>
+      <p class="hint">Dla Temu i Amazona dochodzą automatycznie kolumny <b>Parametr: …</b> — tytuł, opis i bullet pointy trzymane przez BASE w parametrach produktu (np. <span class="mono">temu_bullet_1_pl</span>, <span class="mono">amazon_bullet_1_de</span>).</p>
       <div class="hint" style="margin:14px 0 8px">Zakres produktów:</div>
       <div class="row">
         <button class="chip on" data-scope="listed" id="scope-listed">Wystawione na tym kanale</button>
@@ -315,6 +316,7 @@ label.cb input{width:16px;height:16px;accent-color:var(--primary)}
       </div>
       <div class="hint" style="margin:14px 0 8px">Pola do importu:</div>
       <div class="row" id="i-fields"></div>
+      <p class="hint">Kolumny <b>Parametr: …</b> (Temu/Amazon: tytuł, opis, bullet pointy) importują się automatycznie, jeśli są w pliku — zapis pod tym samym kluczem parametrów, z zachowaniem pozostałych parametrów produktu.</p>
       <div style="margin-top:18px">
         <button class="btn btn-ghost" id="btn-check" disabled>Sprawdź zmiany (nic jeszcze nie zapisuje)</button>
       </div>
@@ -623,6 +625,35 @@ function channelAssignment(tf, integ) {
   return { cat, text, label };
 }
 
+/* Parametry marketplace w obiekcie "features": Temu i Amazon trzymają tam tytuł, opis i bullet pointy
+   (np. temu_title_pl, temu_bullet_1_pl, amazon_bullet_1_de). Zwraca klucz text_fields, obiekt i pasujące parametry. */
+const MP_PARAM = /^([a-z]+)_(title|description|bullet_\d+|bullets?|keywords?|search_terms?)(?:_([a-z]{2}))?$/;
+function mpPrefixes(integ) {
+  const type = (integ || '').replace(/_\d+$/, '');
+  const map = { temupl: ['temu', 'temupl'], amazon: ['amazon', 'amz'], kaufland: ['kaufland'], kauflandpl: ['kaufland', 'kauflandpl'], kauflandfr: ['kaufland', 'kauflandfr'], ebay: ['ebay'], allegro: ['allegro'], inpsa: ['inpost', 'inpsa'] };
+  return map[type] || (type ? [type] : []);
+}
+function mpFeatures(tf, lang, integ) {
+  const prefixes = mpPrefixes(integ);
+  if (!prefixes.length) return { key: '', obj: null, params: [] };
+  const keys = [];
+  if (integ && lang) keys.push('features|' + lang + '|' + integ);
+  if (lang) keys.push('features|' + lang);
+  keys.push('features');
+  const pick = (obj) => Object.keys(obj || {}).filter(k => { const m = k.match(MP_PARAM); return m && prefixes.includes(m[1]) && (!m[3] || !lang || m[3] === lang); });
+  let firstKey = '';
+  for (const k of keys) {
+    const o = tf[k];
+    if (o && typeof o === 'object' && !Array.isArray(o)) {
+      if (!firstKey) firstKey = k;
+      const params = pick(o);
+      if (params.length) return { key: k, obj: o, params: params.sort() };
+    }
+  }
+  return { key: firstKey || (lang ? 'features|' + lang : 'features'), obj: firstKey ? tf[firstKey] : null, params: [] };
+}
+const PARAM_COL = 'Parametr: ';
+
 function targetKey(field, level, lang, integ) {
   if (level === 'channel' && integ && lang) return field + '|' + lang + '|' + integ;
   if (level !== 'base' && lang) return field + '|' + lang;
@@ -733,6 +764,7 @@ $('btn-export').onclick = async () => {
       if (!products.length) throw new Error('Żaden produkt nie ma przypisanej kategorii dla tego kanału. Wybierz zakres „Wszystkie produkty w katalogu".');
     }
     const auditItems = [];
+    const paramCols = new Set();
     const rows = products.map(p => {
       const tf = (data.get(p.id) || {}).text_fields || {};
       const row = { 'SKU': p.sku, 'ID BASE': p.id, 'EAN': p.ean };
@@ -753,10 +785,14 @@ $('btn-export').onclick = async () => {
         row['Przypisanie do kanału'] = asg.label;
         row['Kategoria marketplace (ID)'] = asg.cat;
         it.assign = asg.label;
+        const mp = mpFeatures(tf, lang, integ);
+        mp.params.forEach(k => { row[PARAM_COL + k] = String(mp.obj[k] == null ? '' : mp.obj[k]); paramCols.add(k); });
       }
       auditItems.push(it);
       return row;
     });
+    // wyrównaj kolumny parametrów (żeby każdy wiersz miał ten sam zestaw)
+    if (paramCols.size) rows.forEach(r => { paramCols.forEach(k => { if (!(PARAM_COL + k in r)) r[PARAM_COL + k] = ''; }); });
 
     expStatus('Składam plik…');
     const meta = {
@@ -772,6 +808,7 @@ $('btn-export').onclick = async () => {
     saveFile(rows, meta, fname, S.format);
 
     let msg = 'Gotowe — ' + rows.length + ' produktów';
+    if (paramCols.size) msg += ' · ' + paramCols.size + ' parametrów marketplace (kolumny „Parametr: …")';
     if (skippedNotListed) msg += ' (pominięto ' + skippedNotListed + ' bez kategorii dla tego kanału)';
     if (missing.length) msg += ' · nie znaleziono: ' + missing.slice(0, 20).join(', ') + (missing.length > 20 ? '…' : '');
     expStatus(msg, 'ok'); expBar(100);
@@ -871,7 +908,8 @@ function readFile(file) {
       const hasId = headers.some(h => h.toUpperCase() === 'ID BASE');
       if (!hasSku && !hasId) throw new Error('Brak kolumny „SKU" albo „ID BASE"');
       const fieldCols = headers.filter(h => LABEL_TO_FIELD[h.toLowerCase()]);
-      if (!fieldCols.length) throw new Error('Nie znalazłem żadnej kolumny z treścią (np. „Nazwa oferty", „Opis oferty")');
+      const paramColsIn = headers.filter(h => h.startsWith(PARAM_COL));
+      if (!fieldCols.length && !paramColsIn.length) throw new Error('Nie znalazłem żadnej kolumny z treścią (np. „Nazwa oferty", „Opis oferty", „Parametr: …")');
 
       // META (jeśli plik pochodzi z eksportu)
       let meta = null;
@@ -879,12 +917,12 @@ function readFile(file) {
         meta = {};
         XLSX.utils.sheet_to_json(wb.Sheets['META'], { header: 1 }).slice(1).forEach(r => { if (r[0]) meta[r[0]] = r[1]; });
       }
-      S.file = file; S.rows = rows; S.meta = meta; S.plan = null;
+      S.file = file; S.rows = rows; S.meta = meta; S.plan = null; S.iParams = paramColsIn.map(h => h.slice(PARAM_COL.length));
       S.iFields = fieldCols.map(h => LABEL_TO_FIELD[h.toLowerCase()]).filter(f => FIELD_ORDER.includes(f));
       renderFields('i-fields', 'iFields');
       const info = $('file-info');
       info.innerHTML = '';
-      const kv = [['Plik', file.name], ['Wierszy', rows.length], ['Kolumny z treścią', fieldCols.join(', ')]];
+      const kv = [['Plik', file.name], ['Wierszy', rows.length], ['Kolumny z treścią', fieldCols.concat(paramColsIn).join(', ')]];
       if (meta && meta.kanal) kv.push(['Z eksportu', meta.kanal + (meta.jezyk ? ' · ' + String(meta.jezyk).toUpperCase() : '')]);
       kv.forEach(([k, v]) => { const s = document.createElement('span'); s.innerHTML = k + ': <b></b>'; s.querySelector('b').textContent = v; info.appendChild(s); });
       info.classList.remove('hide');
@@ -918,7 +956,7 @@ document.querySelectorAll('[data-level]').forEach(b => b.onclick = () => {
 });
 
 function refreshCheckBtn() {
-  const ok = S.rows.length && S.iChannel && S.iFields.length && !S.busy;
+  const ok = S.rows.length && S.iChannel && (S.iFields.length || (S.iParams && S.iParams.length)) && !S.busy;
   $('btn-check').disabled = !ok;
 }
 function resetPreview() {
@@ -991,6 +1029,20 @@ $('btn-check').onclick = async () => {
         changes.push({ id: m.p.id, sku: m.p.sku, field: f, key, from: cascade(tf, f, lang, integ).value, to: nv });
         touched = true;
       });
+      // parametry marketplace (features) — zapis pełnego, scalonego obiektu pod tym samym kluczem
+      if (integ && S.iParams && S.iParams.length) {
+        const mp = mpFeatures(tf, lang, integ);
+        S.iParams.forEach(param => {
+          const col = hdr.find(h => h === PARAM_COL + param); if (!col) return;
+          const nv = String(m.row[col] == null ? '' : m.row[col]).replace(/\r\n/g, '\n').trim();
+          const cur = mp.obj && mp.obj[param] != null ? String(mp.obj[param]) : '';
+          b[PARAM_COL + param] = cur;
+          if (!nv) { empty++; return; }
+          if (nv === cur.replace(/\r\n/g, '\n').trim()) { same++; return; }
+          changes.push({ id: m.p.id, sku: m.p.sku, field: 'features', param, label: PARAM_COL + param, key: mp.key, base: mp.obj || {}, from: cur, to: nv });
+          touched = true;
+        });
+      }
       if (touched) backup.push(b);
     });
 
@@ -1030,7 +1082,7 @@ function renderPreview() {
       const tr = document.createElement('tr');
       tr.innerHTML = '<td class="mono"></td><td></td><td class="mono"></td><td class="diff"><span class="old"></span><span class="new"></span></td>';
       const td = tr.querySelectorAll('td');
-      td[0].textContent = c.sku; td[1].textContent = FIELD_LABELS[c.field]; td[2].textContent = c.key;
+      td[0].textContent = c.sku; td[1].textContent = c.field === 'features' ? c.label : FIELD_LABELS[c.field]; td[2].textContent = c.field === 'features' ? c.key + ' → ' + c.param : c.key;
       tr.querySelector('.old').textContent = c.from ? trunc(c.from, 220) : '(puste)';
       tr.querySelector('.new').textContent = trunc(c.to, 220);
       tb.appendChild(tr);
@@ -1075,7 +1127,12 @@ async function writeChanges() {
   $('wr-progress').classList.remove('hide'); wrBar(0);
   // grupujemy zmiany per produkt → jedno zapytanie na produkt
   const perProduct = new Map();
-  P.changes.forEach(c => { if (!perProduct.has(c.id)) perProduct.set(c.id, { sku: c.sku, text_fields: {} }); perProduct.get(c.id).text_fields[c.key] = c.to; });
+  P.changes.forEach(c => {
+    if (!perProduct.has(c.id)) perProduct.set(c.id, { sku: c.sku, text_fields: {} });
+    const tfo = perProduct.get(c.id).text_fields;
+    if (c.field === 'features') { if (!tfo[c.key] || typeof tfo[c.key] !== 'object') tfo[c.key] = Object.assign({}, c.base); tfo[c.key][c.param] = c.to; }
+    else tfo[c.key] = c.to;
+  });
   const items = [...perProduct.entries()];
   const log = []; let ok = 0, fail = 0;
   for (let i = 0; i < items.length; i++) {

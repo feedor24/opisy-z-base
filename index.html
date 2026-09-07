@@ -181,8 +181,23 @@ h3{font-family:var(--fd);font-weight:700;font-size:19px;line-height:1.3;letter-s
 .path span{background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:4px 10px;font-weight:500}
 .path i{color:var(--muted);font-style:normal}
 .shot{aspect-ratio:16/10;border-radius:var(--r);border:1px solid var(--line);background:repeating-linear-gradient(45deg,#F8FAFC 0 12px,#F1F5F9 12px 24px);display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:13px;text-align:center;padding:20px;overflow:hidden}
-.shot a{display:block;width:100%;height:100%}
-.shot img{width:100%;height:100%;object-fit:cover;border-radius:var(--r)}
+.shot{position:relative;overflow:visible;cursor:zoom-in}
+.shot img{width:100%;height:100%;object-fit:cover;border-radius:var(--r);transition:transform .25s ease,box-shadow .25s ease;transform-origin:center;position:relative}
+@media (hover:hover) and (min-width:1001px){
+  .gstep:hover .shot{z-index:5}
+  .shot:hover img{transform:scale(1.9);box-shadow:0 30px 80px rgba(15,23,42,.35);border:1px solid var(--line)}
+  .gstep:nth-child(odd) .shot:hover img{transform-origin:right center}
+  .gstep:nth-child(even) .shot:hover img{transform-origin:left center}
+}
+.lb{position:fixed;inset:0;background:rgba(15,23,42,.94);z-index:100;display:none;align-items:center;justify-content:center;padding:64px 20px 20px}
+.lb.on{display:flex}
+.lb img{max-width:100%;max-height:100%;object-fit:contain;border-radius:10px;box-shadow:0 30px 80px rgba(0,0,0,.5)}
+.lb .back{position:absolute;top:16px;left:20px;display:inline-flex;align-items:center;gap:8px;background:#fff;color:var(--ink);border:0;border-radius:10px;padding:10px 16px;font:inherit;font-weight:600;font-size:14px;cursor:pointer}
+.lb .cap{position:absolute;top:22px;right:20px;color:#CBD5E1;font-size:13px;max-width:50vw;text-align:right}
+.lb .nav-btn{position:absolute;top:50%;transform:translateY(-50%);background:rgba(255,255,255,.12);color:#fff;border:0;width:44px;height:44px;border-radius:50%;font-size:22px;cursor:pointer}
+.lb .prev{left:16px}.lb .next{right:16px}
+.lb .nav-btn:hover{background:rgba(255,255,255,.24)}
+@media (max-width:600px){.lb{padding:64px 8px 8px}.lb .cap{display:none}.lb .nav-btn{width:40px;height:40px}}
 .warn{background:#FFFBEB;border:1px solid #FDE68A;color:#78350F;border-radius:var(--r);padding:16px 18px;font-size:15px;margin-top:24px;line-height:1.5}
 .warn b{color:#92400E}
 
@@ -444,7 +459,7 @@ footer .tm{grid-column:1/-1;font-size:13px;max-width:80ch}
   <div class="grid3">
     <div class="card"><h3>Tylko potrzebne metody</h3><p>Proxy przepuszcza wyłącznie odczyt katalogu i zapis pól tekstowych istniejących produktów. Nie da się nim tworzyć ani kasować produktów, ruszać zamówień, cen czy stanów.</p></div>
     <div class="card"><h3>Osobny token, który możesz usunąć</h3><p>Wygeneruj w BASE token tylko dla tego narzędzia. Po skończonej pracy skasujesz go jednym kliknięciem w tej samej zakładce, bez wpływu na inne integracje.</p></div>
-    <div class="card"><h3>Kod otwarty</h3><p>Aplikacja to jeden plik HTML i jedna funkcja proxy. <a href="https://github.com/feedor24/opisy-z-base" target="_blank" rel="noopener">Repozytorium jest publiczne</a> — możesz przejrzeć każdą linię albo postawić własną kopię na swoim Vercelu.</p></div>
+    <div class="card"><h3>Kod do wglądu</h3><p>Nie musisz wierzyć na słowo. <a href="https://github.com/feedor24/opisy-z-base" target="_blank" rel="noopener">Kod narzędzia jest publiczny</a> — możesz przejrzeć każdą linię proxy i sprawdzić, co dokładnie dzieje się z tokenem.</p></div>
   </div>
 </div></section>
 
@@ -489,9 +504,8 @@ footer .tm{grid-column:1/-1;font-size:13px;max-width:80ch}
     <details><summary>Skąd narzędzie wie, które produkty są wystawione na danym kanale?</summary><p>API BASE nie udostępnia listy ofert marketplace. Używamy najlepszego dostępnego sygnału: BASE wymaga przypisania produktowi kategorii marketplace, żeby wystawić go na danym kanale — więc produkt z kategorią dla Allegro to produkt, który był (lub jest) wystawiany na Allegro. Domyślny zakres „Wystawione na tym kanale" filtruje właśnie po tym. Jeśli chcesz mieć pewność co do 1:1, wklej listę SKU z eksportu ofert w BASE w zakresie „Wybrane SKU". W pliku zawsze dostajesz kolumnę „Przypisanie do kanału".</p></details>
     <details><summary>Ile to trwa dla dużego katalogu?</summary><p>BASE ma limit 100 zapytań na minutę na token. Eksport pobiera opisy paczkami po 100 produktów, więc katalog 10 000 SKU to ok. 100 zapytań — około minuty. Import to jedno zapytanie na produkt, więc 1 000 zmienionych produktów zajmie ok. 11 minut. Pasek postępu pokazuje, na czym stoisz; nie zamykaj karty w trakcie.</p></details>
     <details><summary>Dlaczego w kolumnie „Źródło" mam „bazowy", skoro w BASE widzę opis dla tego kanału?</summary><p>Najczęstsza przyczyna: opis dla kanału jest zapisany w innym języku niż ten, który wybrałeś w narzędziu. Klucz w BASE wygląda tak: <span class="mono">description|de|kaufland_13803</span> — język jest jego częścią. Sprawdź wybór języka w kroku 2. Druga możliwość: opis siedzi w polu „Opis dodatkowy" zamiast w głównym; zaznacz opisy dodatkowe w kroku 3.</p></details>
-    <details><summary>Temu i Amazon: część treści siedzi w „parametrach". Czy narzędzie to widzi?</summary><p>Nie w tej wersji. Dla niektórych integracji BASE trzyma tytuły i bullet pointy także w obiekcie <span class="mono">features</span> (np. <span class="mono">temu_title_pl</span>, <span class="mono">amazon_bullet_1_pl</span>). Narzędzie eksportuje pola <span class="mono">name</span>, <span class="mono">description</span> i opisy dodatkowe. Obsługa <span class="mono">features</span> jest na liście na przyszłość.</p></details>
+    <details><summary>Temu i Amazon: część treści siedzi w „parametrach". Czy narzędzie to widzi?</summary><p>Tak. Dla Temu i Amazona BASE trzyma tytuł, opis i bullet pointy także w parametrach produktu (np. <span class="mono">temu_title_pl</span>, <span class="mono">amazon_bullet_1_de</span>). Przy eksporcie tych kanałów dostajesz je jako dodatkowe kolumny <b>Parametr: …</b>, a przy imporcie wracają w to samo miejsce — z zachowaniem pozostałych parametrów produktu.</p></details>
     <details><summary>Co zbieracie, kiedy używam narzędzia?</summary><p>Anonimowe zdarzenia użycia (np. „eksport: Allegro, 5 700 produktów, wynik audytu 64") — bez tokena, bez treści ofert, bez cookies i bez identyfikacji osoby. Służą do rozwoju narzędzia. Dane kontaktowe trafiają do nas tylko wtedy, gdy sam wypełnisz formularz w raporcie audytu. Szczegóły w <a href="/polityka-prywatnosci">polityce prywatności</a>.</p></details>
-    <details><summary>Czy mogę postawić własną kopię?</summary><p>Tak. <a href="https://github.com/feedor24/opisy-z-base" target="_blank" rel="noopener">Repozytorium jest publiczne</a> (licencja MIT). To statyczny HTML plus jedna funkcja serverless. Deploy na Vercelu zajmuje dwie minuty i nie wymaga żadnej konfiguracji ani zmiennych środowiskowych.</p></details>
     <details><summary>Kto odpowiada, jeśli coś pójdzie nie tak?</summary><p>Narzędzie jest bezpłatne i udostępniane „tak jak jest". Działa na Twoim koncie BASE, Twoim tokenem i na Twoje polecenie — dlatego to Ty decydujesz, co i kiedy zapisać, a przed każdym importem masz podgląd zmian i kopię zapasową. Szczegóły w <a href="/regulamin">regulaminie</a>; jak przetwarzamy dane — w <a href="/polityka-prywatnosci">polityce prywatności</a>.</p></details>
     <details><summary>Nie działa / mam pomysł na funkcję. Gdzie pisać?</summary><p>Na <a href="mailto:maciej.fidor@mediafy.com.pl">maciej.fidor@mediafy.com.pl</a> albo jako <a href="https://github.com/feedor24/opisy-z-base/issues" target="_blank" rel="noopener">issue w repozytorium</a>. Jeśli coś się wysypało, dołącz komunikat błędu z narzędzia — zawiera kod błędu z API BASE, który od razu mówi, co się stało.</p></details>
   </div>
@@ -523,14 +537,46 @@ footer .tm{grid-column:1/-1;font-size:13px;max-width:80ch}
   <div class="tm">BASE i BaseLinker są znakami towarowymi ich właściciela. Narzędzie jest projektem niezależnym i nie jest powiązane z BaseLinker sp. z o.o. ani przez nią wspierane.</div>
 </div></footer>
 
+<div class="lb" id="lb" role="dialog" aria-modal="true" aria-label="Powiększony zrzut ekranu">
+  <button class="back" id="lb-back" type="button">← Wróć do instrukcji</button>
+  <div class="cap" id="lb-cap"></div>
+  <button class="nav-btn prev" id="lb-prev" type="button" aria-label="Poprzedni">‹</button>
+  <img id="lb-img" alt="">
+  <button class="nav-btn next" id="lb-next" type="button" aria-label="Następny">›</button>
+</div>
 <script>
-// Podmiana placeholderów na zrzuty ekranu, gdy pliki img/token-N.png istnieją.
-document.querySelectorAll('.shot[data-shot]').forEach(el => {
-  const img = new Image();
-  img.alt = el.textContent;
-  img.onload = () => { el.textContent = ''; const a = document.createElement('a'); a.href = img.src; a.target = '_blank'; a.rel = 'noopener'; a.title = 'Powiększ'; a.appendChild(img); el.appendChild(a); };
-  img.src = 'img/' + el.dataset.shot + '.png';
-});
+// Zrzuty ekranu: podmiana placeholderów, powiększenie po najechaniu (CSS) i pełny ekran po kliknięciu (w tej karcie).
+(function () {
+  const shots = [...document.querySelectorAll('.shot[data-shot]')];
+  const lb = document.getElementById('lb'), lbImg = document.getElementById('lb-img'), lbCap = document.getElementById('lb-cap');
+  let cur = -1, loaded = [];
+  shots.forEach((el, i) => {
+    const img = new Image();
+    img.alt = el.textContent;
+    img.onload = () => { el.textContent = ''; el.appendChild(img); loaded[i] = true; el.setAttribute('role', 'button'); el.tabIndex = 0; el.title = 'Kliknij, żeby powiększyć'; };
+    img.src = 'img/' + el.dataset.shot + '.png';
+    const open = () => { if (!loaded[i]) return; cur = i; show(); history.pushState({ lb: 1 }, ''); };
+    el.addEventListener('click', open);
+    el.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } });
+  });
+  function show() {
+    const el = shots[cur], img = el.querySelector('img');
+    lbImg.src = img.src; lbImg.alt = img.alt; lbCap.textContent = 'Krok ' + (cur + 1) + ' z ' + shots.length + ' · ' + img.alt.replace(/^Zrzut ekranu: /, '');
+    lb.classList.add('on'); document.body.style.overflow = 'hidden';
+  }
+  function close(viaHistory) {
+    if (!lb.classList.contains('on')) return;
+    lb.classList.remove('on'); document.body.style.overflow = '';
+    if (!viaHistory && history.state && history.state.lb) history.back();
+  }
+  const step = d => { let n = cur; for (let k = 0; k < shots.length; k++) { n = (n + d + shots.length) % shots.length; if (loaded[n]) { cur = n; show(); return; } } };
+  document.getElementById('lb-back').addEventListener('click', () => close(false));
+  document.getElementById('lb-prev').addEventListener('click', e => { e.stopPropagation(); step(-1); });
+  document.getElementById('lb-next').addEventListener('click', e => { e.stopPropagation(); step(1); });
+  lb.addEventListener('click', e => { if (e.target === lb || e.target === lbImg) close(false); });
+  document.addEventListener('keydown', e => { if (!lb.classList.contains('on')) return; if (e.key === 'Escape') close(false); if (e.key === 'ArrowLeft') step(-1); if (e.key === 'ArrowRight') step(1); });
+  window.addEventListener('popstate', () => close(true));
+})();
 </script>
 </body>
 </html>
