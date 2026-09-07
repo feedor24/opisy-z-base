@@ -78,7 +78,9 @@ h3{font-family:var(--fd);font-weight:700;font-size:19px;line-height:1.3;letter-s
 
 /* mock pliku — teza strony */
 .mock{margin-top:64px;background:#fff;border:1px solid var(--line);border-radius:var(--r-lg) var(--r-lg) 0 0;border-bottom:0;box-shadow:var(--sh-glow);overflow:hidden}
-.mock .head{display:flex;align-items:center;gap:12px;padding:14px 18px;border-bottom:1px solid var(--line);background:var(--surface);font-size:13px}
+.mock .head{display:flex;align-items:center;gap:12px;padding:14px 18px;border-bottom:1px solid var(--line);background:var(--surface);font-size:13px;min-width:0}
+.mock .head .f{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mock .head .pill{white-space:nowrap;flex-shrink:0}
 .mock .head .d{display:flex;gap:6px}.mock .head .d i{width:10px;height:10px;border-radius:50%;background:var(--line-2);display:block}
 .mock .head .f{font-family:var(--fm);color:var(--ink-soft);font-size:12.5px}
 .mock .head .pill{margin-left:auto;background:var(--grad);color:#fff;padding:4px 12px;border-radius:999px;font-size:11.5px;font-weight:600;letter-spacing:.02em}
@@ -136,6 +138,7 @@ h3{font-family:var(--fd);font-weight:700;font-size:19px;line-height:1.3;letter-s
 .check li{display:flex;gap:12px;align-items:flex-start;font-size:15.5px;color:var(--ink-soft);line-height:1.5}
 .check li::before{content:"✓";flex-shrink:0;width:22px;height:22px;border-radius:50%;background:#ECFDF5;color:#047857;font-weight:700;display:flex;align-items:center;justify-content:center;font-size:12px;margin-top:3px}
 .check li b{color:var(--ink)}
+.check li>span{flex:1;min-width:0}
 .panel{background:#fff;border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--sh-card);overflow:hidden}
 .panel .ph{background:var(--surface);border-bottom:1px solid var(--line);padding:14px 20px;font-weight:600;font-size:14px;display:flex;align-items:center;gap:10px}
 .panel .ph i{width:8px;height:8px;border-radius:50%;background:var(--success);display:inline-block}
@@ -177,6 +180,7 @@ h3{font-family:var(--fd);font-weight:700;font-size:19px;line-height:1.3;letter-s
 .path span{background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:4px 10px;font-weight:500}
 .path i{color:var(--muted);font-style:normal}
 .shot{aspect-ratio:16/10;border-radius:var(--r);border:1px solid var(--line);background:repeating-linear-gradient(45deg,#F8FAFC 0 12px,#F1F5F9 12px 24px);display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:13px;text-align:center;padding:20px;overflow:hidden}
+.shot a{display:block;width:100%;height:100%}
 .shot img{width:100%;height:100%;object-fit:cover;border-radius:var(--r)}
 .warn{background:#FFFBEB;border:1px solid #FDE68A;color:#78350F;border-radius:var(--r);padding:16px 18px;font-size:15px;margin-top:24px;line-height:1.5}
 .warn b{color:#92400E}
@@ -225,6 +229,22 @@ footer .tm{grid-column:1/-1;font-size:13px;max-width:80ch}
 }
 @media (max-width:600px){
   .wrap{padding:0 20px}
+  .hero .cta{flex-direction:column}
+  .hero .cta .btn{width:100%}
+  .trust{display:grid;grid-template-columns:1fr 1fr;gap:10px 14px}
+  .mock .head{padding:12px 14px}
+  .tbl{min-width:0}
+  .tbl tr{display:block;padding:4px 0}
+  .tbl th{display:none}
+  .tbl td{display:block;width:auto;padding:6px 16px;border:0}
+  .tbl td:first-child{padding-top:14px;color:var(--ink)}
+  .tbl td:last-child{padding-bottom:14px;border-bottom:1px solid var(--line)}
+  .tbl tr:last-child td:last-child{border-bottom:0}
+  .stats{grid-template-columns:1fr 1fr 1fr;gap:6px}
+  .stat{padding:10px}
+  .stat .v{font-size:22px}
+  .pact{flex-direction:column}
+  .pact span{text-align:center}
   .steps{grid-template-columns:1fr}
   .stp{border-right:0;border-bottom:1px solid var(--line)}.stp:last-child{border-bottom:0}
   .brand small{display:none}
@@ -348,11 +368,11 @@ footer .tm{grid-column:1/-1;font-size:13px;max-width:80ch}
       <h2>Wgraj poprawiony plik. Bez ryzyka, że coś rozwalisz.</h2>
       <p style="color:var(--ink-soft);max-width:56ch">Import został zaprojektowany tak, żeby nie dało się przypadkiem skasować albo nadpisać nie tego, co trzeba. Zanim cokolwiek trafi do BASE, widzisz dokładnie, co się zmieni.</p>
       <ul class="check">
-        <li><b>Podgląd zmian przed zapisem.</b> Narzędzie pobiera aktualny stan z BASE, porównuje z plikiem i pokazuje „było → będzie" dla każdego pola.</li>
-        <li><b>Puste komórki są pomijane.</b> Import niczego nie kasuje. Zmienia tylko to, co faktycznie różni się od stanu w BASE.</li>
-        <li><b>Automatyczna kopia zapasowa.</b> Przed zapisem pobierasz XLSX ze stanem sprzed importu. W razie czego wgrywasz go tym samym narzędziem.</li>
-        <li><b>Wybierasz poziom zapisu.</b> Nadpisanie dla kanału, tłumaczenie językowe albo wartość bazowa — świadomie, nie domyślnie.</li>
-        <li><b>Raport po imporcie.</b> Który produkt zapisany, który zwrócił błąd i dlaczego.</li>
+        <li><span><b>Podgląd zmian przed zapisem.</b> Narzędzie pobiera aktualny stan z BASE, porównuje z plikiem i pokazuje „było → będzie" dla każdego pola.</span></li>
+        <li><span><b>Puste komórki są pomijane.</b> Import niczego nie kasuje. Zmienia tylko to, co faktycznie różni się od stanu w BASE.</span></li>
+        <li><span><b>Automatyczna kopia zapasowa.</b> Przed zapisem pobierasz XLSX ze stanem sprzed importu. W razie czego wgrywasz go tym samym narzędziem.</span></li>
+        <li><span><b>Wybierasz poziom zapisu.</b> Nadpisanie dla kanału, tłumaczenie językowe albo wartość bazowa — świadomie, nie domyślnie.</span></li>
+        <li><span><b>Raport po imporcie.</b> Który produkt zapisany, który zwrócił błąd i dlaczego.</span></li>
       </ul>
     </div>
     <div class="panel" aria-label="Przykład podglądu zmian">
@@ -471,7 +491,7 @@ footer .tm{grid-column:1/-1;font-size:13px;max-width:80ch}
 document.querySelectorAll('.shot[data-shot]').forEach(el => {
   const img = new Image();
   img.alt = el.textContent;
-  img.onload = () => { el.textContent = ''; el.appendChild(img); };
+  img.onload = () => { el.textContent = ''; const a = document.createElement('a'); a.href = img.src; a.target = '_blank'; a.rel = 'noopener'; a.title = 'Powiększ'; a.appendChild(img); el.appendChild(a); };
   img.src = 'img/' + el.dataset.shot + '.png';
 });
 </script>
