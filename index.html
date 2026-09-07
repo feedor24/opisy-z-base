@@ -377,8 +377,8 @@ footer a{color:var(--muted);text-decoration:underline}
     <details><summary>Ile to trwa dla dużego katalogu?</summary><p>BASE ma limit 100 zapytań na minutę na token. Eksport pobiera opisy paczkami po 100 produktów, więc katalog 10 000 SKU to ok. 100 zapytań — około minuty. Import to jedno zapytanie na produkt, więc 1 000 zmienionych produktów zajmie ok. 11 minut. Pasek postępu pokazuje, na czym stoisz; nie zamykaj karty w trakcie.</p></details>
     <details><summary>Dlaczego w kolumnie „Źródło" mam „bazowy", skoro w BASE widzę opis dla tego kanału?</summary><p>Najczęstsza przyczyna: opis dla kanału jest zapisany w innym języku niż ten, który wybrałeś w narzędziu. Klucz w BASE wygląda tak: <span class="mono">description|de|kaufland_13803</span> — język jest jego częścią. Sprawdź wybór języka w kroku 2. Druga możliwość: opis siedzi w polu „Opis dodatkowy" zamiast w głównym — zaznacz opisy dodatkowe w kroku 3.</p></details>
     <details><summary>Temu i Amazon: część treści siedzi w „parametrach" — czy narzędzie to widzi?</summary><p>Nie w tej wersji. Dla niektórych integracji BASE trzyma tytuły i bullet pointy także w obiekcie <span class="mono">features</span> (np. <span class="mono">temu_title_pl</span>, <span class="mono">amazon_bullet_1_pl</span>). Narzędzie eksportuje pola <span class="mono">name</span>, <span class="mono">description</span> i opisy dodatkowe. Obsługa <span class="mono">features</span> jest na liście na przyszłość.</p></details>
-    <details><summary>Czy mogę postawić własną kopię?</summary><p>Tak. Repozytorium jest publiczne (licencja MIT). To statyczny HTML plus jedna funkcja serverless — deploy na Vercelu zajmuje dwie minuty i nie wymaga żadnej konfiguracji ani zmiennych środowiskowych.</p></details>
-    <details><summary>Nie działa / mam pomysł na funkcję. Gdzie pisać?</summary><p>Na <a href="mailto:maciej.fidor@mediafy.com.pl">maciej.fidor@mediafy.com.pl</a> albo jako issue w repozytorium. Jeśli coś się wysypało, dołącz komunikat błędu z narzędzia — zawiera kod błędu z API BASE, który od razu mówi, co się stało.</p></details>
+    <details><summary>Czy mogę postawić własną kopię?</summary><p>Tak. <a href="https://github.com/feedor24/opisy-z-base" target="_blank" rel="noopener">Repozytorium jest publiczne</a> (licencja MIT). To statyczny HTML plus jedna funkcja serverless — deploy na Vercelu zajmuje dwie minuty i nie wymaga żadnej konfiguracji ani zmiennych środowiskowych.</p></details>
+    <details><summary>Nie działa / mam pomysł na funkcję. Gdzie pisać?</summary><p>Na <a href="mailto:maciej.fidor@mediafy.com.pl">maciej.fidor@mediafy.com.pl</a> albo jako <a href="https://github.com/feedor24/opisy-z-base/issues" target="_blank" rel="noopener">issue w repozytorium</a>. Jeśli coś się wysypało, dołącz komunikat błędu z narzędzia — zawiera kod błędu z API BASE, który od razu mówi, co się stało.</p></details>
   </div>
 </div></section>
 
@@ -399,7 +399,7 @@ footer a{color:var(--muted);text-decoration:underline}
 
 <footer><div class="wrap">
   <div>© 2026 Mediafy · <b style="color:var(--ink)">MAMS</b> — Multi-Agent Marketplace System</div>
-  <div><a href="https://mams.mediafy.com.pl" target="_blank" rel="noopener">mams.mediafy.com.pl</a> · <a href="#" data-repo>Kod na GitHubie</a> · <a href="mailto:maciej.fidor@mediafy.com.pl">Kontakt</a> · BASE i BaseLinker są znakami towarowymi ich właściciela; narzędzie nie jest z nim powiązane.</div>
+  <div><a href="https://mams.mediafy.com.pl" target="_blank" rel="noopener">mams.mediafy.com.pl</a> · <a href="https://github.com/feedor24/opisy-z-base" target="_blank" rel="noopener">Kod na GitHubie</a> · <a href="mailto:maciej.fidor@mediafy.com.pl">Kontakt</a> · BASE i BaseLinker są znakami towarowymi ich właściciela; narzędzie nie jest z nim powiązane.</div>
 </div></footer>
 
 <script>

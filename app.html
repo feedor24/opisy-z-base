@@ -142,7 +142,10 @@ td .new{color:var(--ink);display:block;white-space:pre-wrap;word-break:break-wor
 .modal .row{margin-top:18px;justify-content:flex-end}
 
 .token-row{display:flex;gap:10px;align-items:stretch}
-.token-row input{flex:1}
+.token-row .token-input{flex:1;position:relative}
+.token-input input{padding-right:64px}
+.eye{position:absolute;right:8px;top:50%;transform:translateY(-50%);border:0;background:var(--surface-2);color:var(--ink-soft);font-size:12px;font-weight:600;padding:5px 9px;border-radius:8px;cursor:pointer}
+.eye:hover{background:var(--line)}
 .logged{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
 .foot{text-align:center;color:var(--muted);font-size:13px;margin-top:40px}
 .foot a{color:var(--muted);text-decoration:underline}
@@ -181,7 +184,7 @@ label.cb input{width:16px;height:16px;accent-color:var(--primary)}
     <div class="step"><span class="num">1</span><h2>Połącz z BASE</h2><span class="meta" id="token-meta"></span></div>
     <div id="token-form">
       <div class="token-row">
-        <input type="password" id="token" placeholder="Wklej token API z BASE (Konto i inne → Moje konto → API)" autocomplete="off" spellcheck="false">
+        <div class="token-input"><input type="password" id="token" placeholder="Wklej token API z BASE (Konto i inne → Moje konto → API)" autocomplete="off" spellcheck="false"><button type="button" class="eye" id="btn-eye" title="Pokaż / ukryj token">Pokaż</button></div>
         <button class="btn btn-primary" id="btn-connect">Połącz</button>
       </div>
       <div class="row" style="margin-top:10px;justify-content:space-between">
@@ -189,8 +192,8 @@ label.cb input{width:16px;height:16px;accent-color:var(--primary)}
         <a href="/#token" style="font-size:13px">Nie masz tokena? Instrukcja krok po kroku →</a>
       </div>
       <p class="hint">Token leci prosto do API BASE przez nasz serwer i <b>nie jest nigdzie zapisywany</b>. Bez zaznaczonej opcji zniknie po zamknięciu karty.</p>
-      <div id="token-err" class="note err hide"></div>
     </div>
+    <div id="token-err" class="note err hide"></div>
     <div id="token-ok" class="logged hide">
       <span class="badge ok">● Połączono</span>
       <span id="inv-wrap" style="flex:1;min-width:240px;display:flex;align-items:center;gap:10px">
@@ -451,9 +454,12 @@ async function loadInventory(id) {
     ['card-channel', 'card-fields', 'card-run', 'card-file', 'card-target'].forEach(c => $(c).classList.remove('dim'));
     $('channel-meta').textContent = S.channels.length + ' kanałów';
     if (S.meta) applyMetaToImport();
+    refreshExportBtn(); refreshCheckBtn();
   } catch (e) {
     $('channel-meta').textContent = '';
-    alert('Nie udało się pobrać listy pól: ' + e.message);
+    const err = $('token-err');
+    err.textContent = 'Nie udało się pobrać listy pól z BASE: ' + e.message;
+    err.classList.remove('hide');
   }
 }
 
@@ -976,12 +982,18 @@ document.querySelectorAll('.tab').forEach(t => t.onclick = () => {
   document.querySelectorAll('.tab').forEach(x => x.classList.remove('on')); t.classList.add('on');
   document.querySelectorAll('.panel').forEach(p => p.classList.toggle('on', p.id === 'panel-' + t.dataset.tab));
 });
+$('btn-eye').onclick = () => { const i = $('token'); const show = i.type === 'password'; i.type = show ? 'text' : 'password'; $('btn-eye').textContent = show ? 'Ukryj' : 'Pokaż'; };
 $('btn-connect').onclick = () => { const t = $('token').value.trim(); if (t) connect(t, $('remember').checked); };
 $('token').addEventListener('keydown', e => { if (e.key === 'Enter') $('btn-connect').click(); });
 $('btn-logout').onclick = () => { clearToken(); location.reload(); };
 $('inventory').onchange = e => loadInventory(Number(e.target.value));
 
 (function init() {
+  if (typeof XLSX === 'undefined') {
+    const err = $('token-err');
+    err.textContent = 'Nie udało się wczytać biblioteki do plików Excel (cdnjs.cloudflare.com). Sprawdź połączenie albo blokadę skryptów i odśwież stronę.';
+    err.classList.remove('hide');
+  }
   const saved = loadSavedToken();
   if (saved) {
     let remembered = false; try { remembered = !!localStorage.getItem('bl_token'); } catch {}
