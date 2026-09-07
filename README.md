@@ -23,8 +23,7 @@ vendor/xlsx.full.min.js   SheetJS 0.18.5 hostowany lokalnie (bez CDN)
 Adresy po wdrożeniu (`cleanUrls`): `/` = landing, `/app` = narzędzie, `/api/base` = proxy,
 `/regulamin`, `/polityka-prywatnosci`. Strona nie ładuje nic z zewnętrznych domen (prywatność, brak banera cookie).
 
-**Przed publikacją uzupełnij pola `[UZUPEŁNIJ]` w regulaminie i polityce** (dane usługodawcy, data) — dokumenty
-przygotowane jako wzór, do weryfikacji prawnej.
+Domena: `opisy.mediafy.com.pl` (CNAME → cname.vercel-dns.com). Usługodawca w dokumentach: Fundacja „Twój StartUp" (inkubator).
 
 ## Jak działa
 
