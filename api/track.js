@@ -5,6 +5,9 @@
 const SUPABASE_URL = process.env.LEADS_SUPABASE_URL || 'https://jpkxaoohshlnylddncxf.supabase.co';
 const SUPABASE_KEY = process.env.LEADS_SUPABASE_KEY || 'sb_publishable_WskY-0na7Q3KKtNLdChcbw_tf7gBtGF';
 const NOTIFY = process.env.LEADS_NOTIFY_WEBHOOK || ''; // opcjonalnie: n8n/Make — POST z leadem
+const RESEND_KEY = process.env.RESEND_API_KEY || '';      // opcjonalnie: mail z leadem przez Resend
+const NOTIFY_TO = process.env.LEAD_NOTIFY_TO || 'maciej.fidor@mediafy.com.pl';
+const NOTIFY_FROM = process.env.LEAD_NOTIFY_FROM || 'Opisy z BASE <onboarding@resend.dev>';
 const SALT = process.env.IP_SALT || 'opisy-z-base';
 
 const crypto = require('crypto');
@@ -59,6 +62,23 @@ module.exports = async (req, res) => {
       };
       await insert('hot_leads', row);
       if (NOTIFY) { fetch(NOTIFY, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(row) }).catch(() => {}); }
+      if (RESEND_KEY) {
+        const a = row.kalkulator || {};
+        const esc = v => String(v == null ? '' : v).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+        const html = '<div style="font-family:Inter,Arial,sans-serif;font-size:15px;line-height:1.5;color:#0F172A">' +
+          '<h2 style="margin:0 0 12px">Nowy lead z raportu audytu</h2>' +
+          '<p><b>' + esc(row.nazwa_firmy || '—') + '</b> · ' + esc(row.osoba || '—') + '<br>' +
+          (row.email ? '<a href="mailto:' + esc(row.email) + '">' + esc(row.email) + '</a>' : '') + (row.telefon ? ' · <a href="tel:' + esc(row.telefon) + '">' + esc(row.telefon) + '</a>' : '') + '</p>' +
+          (row.wiadomosc ? '<p style="background:#F8FAFC;border-left:3px solid #7C3AED;padding:10px 14px;white-space:pre-wrap">' + esc(row.wiadomosc) + '</p>' : '') +
+          '<p style="color:#334155"><b>Audyt:</b> ' + esc(a.channel || row.utm.channel || '') + ' · wynik <b>' + esc(a.score) + '/100</b> · ' + esc(a.n) + ' ofert · ' + esc(a.descChannelPct) + '% opisów pod kanał · śr. ' + esc(a.descAvg) + ' zn. · ' + esc(a.descEmpty) + ' pustych, ' + esc(a.descShort) + ' krótkich · ' + esc(a.noEan) + ' bez EAN</p>' +
+          '<p style="color:#64748B;font-size:13px">Zgoda na kontakt: ' + (row.utm.zgoda_kontakt ? 'tak' : 'nie') + ' · źródło: ' + esc(row.source_page) + '</p></div>';
+        try {
+          await fetch('https://api.resend.com/emails', {
+            method: 'POST', headers: { Authorization: 'Bearer ' + RESEND_KEY, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ from: NOTIFY_FROM, to: [NOTIFY_TO], reply_to: row.email || undefined, subject: 'Lead: ' + (row.nazwa_firmy || row.osoba || row.email || 'raport audytu') + (a.score != null ? ' · ' + a.score + '/100' : ''), html }),
+          });
+        } catch {}
+      }
       res.status(200).json({ ok: true });
       return;
     }

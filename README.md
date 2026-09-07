@@ -52,7 +52,8 @@ API BASE nie zwraca listy ofert marketplace. Proxy sygnału: produkt ma `marketp
 ## Leady i statystyki
 
 `/api/track` → Supabase `jpkxaoohshlnylddncxf` kluczem anon (RLS: insert-only). Env vary opcjonalne:
-`LEADS_SUPABASE_URL`, `LEADS_SUPABASE_KEY`, `LEADS_NOTIFY_WEBHOOK` (POST z leadem, np. n8n → mail), `IP_SALT`.
+`LEADS_SUPABASE_URL`, `LEADS_SUPABASE_KEY`, `LEADS_NOTIFY_WEBHOOK` (POST z leadem, np. n8n → mail), `IP_SALT`,
+`RESEND_API_KEY` (+ opcjonalnie `LEAD_NOTIFY_TO`, `LEAD_NOTIFY_FROM`) — mail z każdym leadem przez Resend.
 Vercel Web Analytics: włącz w dashboardzie projektu (skrypt już jest w HTML).
 
 ## Wdrożenie na Vercel
