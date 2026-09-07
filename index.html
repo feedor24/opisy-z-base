@@ -14,6 +14,7 @@
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="fonts.css">
+<script defer src="/_vercel/insights/script.js"></script>
 <style>
 :root{
   --ink:#0F172A;--ink-soft:#334155;--muted:#64748B;
@@ -264,6 +265,7 @@ footer .tm{grid-column:1/-1;font-size:13px;max-width:80ch}
   </a>
   <nav class="links">
     <a href="#jak-dziala">Jak działa</a>
+    <a href="#audyt">Audyt</a>
     <a href="#import">Import</a>
     <a href="#bezpieczenstwo">Bezpieczeństwo</a>
     <a href="#token">Token API</a>
@@ -326,7 +328,7 @@ footer .tm{grid-column:1/-1;font-size:13px;max-width:80ch}
   <div class="steps">
     <div class="stp"><div class="n">KROK 1</div><h3>Wklej token</h3><p>Narzędzie łączy się z Twoim kontem i pobiera listę katalogów oraz kanałów, które masz podpięte w BASE.</p></div>
     <div class="stp"><div class="n">KROK 2</div><h3>Wybierz kanał i język</h3><p>Allegro, Amazon DE, Kaufland FR, eBay EN, Temu… Lista buduje się z Twojego katalogu — widzisz dokładnie to, co masz w BASE.</p></div>
-    <div class="stp"><div class="n">KROK 3</div><h3>Pobierz XLSX</h3><p>Cały katalog albo wybrane SKU. Nazwa, opis, liczba znaków i kolumna <b>Źródło</b>, która mówi, skąd wzięła się każda wartość.</p></div>
+    <div class="stp"><div class="n">KROK 3</div><h3>Pobierz XLSX + audyt</h3><p>Domyślnie tylko oferty wystawione na tym kanale. Nazwa, opis, liczba znaków, kolumna <b>Źródło</b> — i od razu raport audytu treści z oceną 0–100.</p></div>
     <div class="stp"><div class="n">KROK 4</div><h3>Popraw i wgraj z powrotem</h3><p>Ten sam plik, poprawione komórki. Narzędzie pokazuje podgląd zmian, robi kopię zapasową i dopiero po potwierdzeniu zapisuje w BASE.</p></div>
   </div>
 
@@ -344,6 +346,38 @@ footer .tm{grid-column:1/-1;font-size:13px;max-width:80ch}
   </div>
 </div></section>
 
+<!-- ============ AUDYT ============ -->
+<section id="audyt"><div class="wrap">
+  <div class="two">
+    <div>
+      <div class="eyebrow">Audyt kanału — gratis do każdego eksportu</div>
+      <h2>Zobacz, czy Twoje treści sprzedają, zanim ktoś Ci to powie.</h2>
+      <p style="color:var(--ink-soft);max-width:56ch">Razem z plikiem dostajesz raport audytu treści dla wybranego kanału: ocena 0–100 w sześciu obszarach, lista „co jest dobrze / do poprawy" i oferty z największą liczbą uwag. Jeden plik HTML, otwiera się wszędzie, drukuje do PDF.</p>
+      <ul class="check">
+        <li><span><b>Treści pod kanał.</b> Ile ofert ma opis pisany pod Allegro, a ile leci na surowym opisie bazowym.</span></li>
+        <li><span><b>Jakość opisów.</b> Długość, struktura (akapity, nagłówki, listy), „ściany tekstu", puste opisy.</span></li>
+        <li><span><b>Tytuły.</b> Limit znaków kanału, WIELKIE LITERY, tytuły będące samym kodem produktu, duplikaty.</span></li>
+        <li><span><b>SEO i zgodność.</b> Słowo kluczowe z tytułu w opisie, linki i dane kontaktowe (podstawa do blokady), zduplikowane opisy, brak EAN.</span></li>
+      </ul>
+      <div class="row" style="margin-top:22px;display:flex;gap:12px;flex-wrap:wrap"><a class="btn btn-ghost" href="/raport-demo" target="_blank" rel="noopener">Zobacz przykładowy raport</a></div>
+    </div>
+    <div class="panel" aria-label="Przykład raportu audytu">
+      <div class="ph"><i></i> Audyt treści · Allegro · 1 240 ofert</div>
+      <div class="pb">
+        <div style="display:flex;gap:18px;align-items:center;margin-bottom:16px">
+          <svg viewBox="0 0 100 100" width="84" height="84"><circle cx="50" cy="50" r="40" fill="none" stroke="#E2E8F0" stroke-width="9"/><circle cx="50" cy="50" r="40" fill="none" stroke="#B45309" stroke-width="9" stroke-linecap="round" stroke-dasharray="251.3" stroke-dashoffset="70.4" transform="rotate(-90 50 50)"/><text x="50" y="58" text-anchor="middle" font-family="Manrope,Inter,system-ui" font-weight="800" font-size="26" fill="#0F172A">72</text></svg>
+          <div><div style="font-family:var(--fd);font-weight:800;font-size:17px;color:#B45309">Dobrze, jest co poprawić</div><div style="font-size:13px;color:var(--muted)">81% opisów pod kanał · średnio 1 130 zn. · 178 ofert do poprawy</div></div>
+        </div>
+        <div class="bar"><div class="bl" style="display:flex;justify-content:space-between;font-size:13px"><span>Treści pod kanał</span><b>81</b></div><div class="bt" style="height:8px;background:var(--line);border-radius:4px;overflow:hidden"><i style="display:block;height:100%;width:81%;background:#10B981"></i></div></div>
+        <div class="bar" style="margin-top:8px"><div class="bl" style="display:flex;justify-content:space-between;font-size:13px"><span>Jakość opisów</span><b>62</b></div><div class="bt" style="height:8px;background:var(--line);border-radius:4px;overflow:hidden"><i style="display:block;height:100%;width:62%;background:#F59E0B"></i></div></div>
+        <div class="bar" style="margin-top:8px"><div class="bl" style="display:flex;justify-content:space-between;font-size:13px"><span>Tytuły ofert</span><b>70</b></div><div class="bt" style="height:8px;background:var(--line);border-radius:4px;overflow:hidden"><i style="display:block;height:100%;width:70%;background:#F59E0B"></i></div></div>
+        <div class="bar" style="margin-top:8px"><div class="bl" style="display:flex;justify-content:space-between;font-size:13px"><span>Zgodność z regulaminami</span><b>41</b></div><div class="bt" style="height:8px;background:var(--line);border-radius:4px;overflow:hidden"><i style="display:block;height:100%;width:41%;background:#DC2626"></i></div></div>
+        <ul class="check" style="margin-top:16px;gap:8px;font-size:14px"><li style="font-size:14px"><span><b>Do poprawy:</b> 237 opisów krótszych niż 300 znaków, 51 opisów z linkiem do sklepu, 88 tytułów WIELKIMI LITERAMI.</span></li></ul>
+      </div>
+    </div>
+  </div>
+</div></section>
+
 <!-- ============ PLIK ============ -->
 <section id="plik"><div class="wrap">
   <div class="eyebrow">Co dostajesz</div>
@@ -356,6 +390,7 @@ footer .tm{grid-column:1/-1;font-size:13px;max-width:80ch}
     <tr><td>Opis oferty</td><td>Treść opisu — często HTML, zależnie od kanału. Opcjonalnie także opisy dodatkowe 1–4.</td></tr>
     <tr><td>Znaków w opisie</td><td>Pełna długość oryginału. Przydaje się przy limitach marketplace'ów.</td></tr>
     <tr><td>Źródło: nazwa · Źródło: opis</td><td><b>marketplace</b> / <b>język</b> / <b>bazowy</b> / <b>brak</b> — z którego poziomu kaskady pochodzi wartość.</td></tr>
+    <tr><td>Przypisanie do kanału</td><td><b>kategoria + treści</b> / <b>kategoria</b> / <b>tylko treści</b> / <b>brak</b> — czy produkt ma w BASE przypisaną kategorię marketplace dla tego kanału (to warunek wystawienia oferty) i czy ma treści nadpisane pod kanał. Plus ID tej kategorii.</td></tr>
     <tr><td>Arkusz META</td><td>Katalog, kanał, język i data eksportu. Przy imporcie narzędzie odczytuje to samo i podpowiada, gdzie zapisać.</td></tr>
   </table></div>
 </div></section>
@@ -398,7 +433,7 @@ footer .tm{grid-column:1/-1;font-size:13px;max-width:80ch}
 <section id="bezpieczenstwo"><div class="wrap">
   <div class="eyebrow">Bezpieczeństwo</div>
   <h2>Twój token zostaje Twój.</h2>
-  <p class="lead-sec">Narzędzie nie ma bazy danych, kont ani logów z tokenami. Token przekazujesz w nagłówku żądania, serwer przepuszcza go do API BASE i zapomina. Strona nie ładuje niczego z zewnętrznych serwisów — żadnych fontów Google, skryptów analitycznych ani reklam. Cały kod jest publiczny.</p>
+  <p class="lead-sec">Narzędzie nie ma kont ani logów z tokenami. Token przekazujesz w nagłówku żądania, serwer przepuszcza go do API BASE i zapomina. Strona nie ładuje fontów Google ani skryptów reklamowych, nie używa cookies; zbiera tylko anonimowe statystyki użycia. Cały kod jest publiczny.</p>
   <div class="flow">
     <div class="node"><div class="t">Twoja przeglądarka</div><div class="d">token w pamięci karty (albo, jeśli chcesz, zapamiętany w tej przeglądarce)</div></div>
     <div class="arrow">→</div>
@@ -451,9 +486,11 @@ footer .tm{grid-column:1/-1;font-size:13px;max-width:80ch}
     <details open><summary>Czy to naprawdę jest darmowe? Gdzie jest haczyk?</summary><p>Tak, w całości i bez limitów. Narzędzie powstało przy wdrożeniu dla dużego dystrybutora i uznaliśmy, że innym użytkownikom BASE też się przyda. „Haczyk" jest jeden: na dole strony jest informacja o MAMS — systemie, który masowo generuje oferty na marketplace'y. Jeśli kiedyś będziesz potrzebować nie tylko wyjąć opisy, ale też je napisać, będziesz wiedzieć, gdzie szukać.</p></details>
     <details><summary>Czy narzędzie widzi moje zamówienia, ceny, stany magazynowe?</summary><p>Nie. Proxy przepuszcza tylko sześć metod API: listę katalogów, listę pól tekstowych, listę integracji, listę produktów, dane produktów i aktualizację pól tekstowych. Każda inna metoda jest odrzucana po stronie serwera, niezależnie od tego, jakie uprawnienia ma token.</p></details>
     <details><summary>Czy import może coś skasować?</summary><p>Nie. Puste komórki są pomijane, a zmienione są tylko te pola, które różnią się od aktualnego stanu w BASE. Przed zapisem widzisz pełny podgląd „było → będzie" i automatycznie pobierasz kopię zapasową. Jedyne, co import robi, to nadpisuje wskazane pola tekstowe wskazanych produktów, dokładnie tak, jakbyś zrobił to ręcznie w panelu.</p></details>
+    <details><summary>Skąd narzędzie wie, które produkty są wystawione na danym kanale?</summary><p>API BASE nie udostępnia listy ofert marketplace. Używamy najlepszego dostępnego sygnału: BASE wymaga przypisania produktowi kategorii marketplace, żeby wystawić go na danym kanale — więc produkt z kategorią dla Allegro to produkt, który był (lub jest) wystawiany na Allegro. Domyślny zakres „Wystawione na tym kanale" filtruje właśnie po tym. Jeśli chcesz mieć pewność co do 1:1, wklej listę SKU z eksportu ofert w BASE w zakresie „Wybrane SKU". W pliku zawsze dostajesz kolumnę „Przypisanie do kanału".</p></details>
     <details><summary>Ile to trwa dla dużego katalogu?</summary><p>BASE ma limit 100 zapytań na minutę na token. Eksport pobiera opisy paczkami po 100 produktów, więc katalog 10 000 SKU to ok. 100 zapytań — około minuty. Import to jedno zapytanie na produkt, więc 1 000 zmienionych produktów zajmie ok. 11 minut. Pasek postępu pokazuje, na czym stoisz; nie zamykaj karty w trakcie.</p></details>
     <details><summary>Dlaczego w kolumnie „Źródło" mam „bazowy", skoro w BASE widzę opis dla tego kanału?</summary><p>Najczęstsza przyczyna: opis dla kanału jest zapisany w innym języku niż ten, który wybrałeś w narzędziu. Klucz w BASE wygląda tak: <span class="mono">description|de|kaufland_13803</span> — język jest jego częścią. Sprawdź wybór języka w kroku 2. Druga możliwość: opis siedzi w polu „Opis dodatkowy" zamiast w głównym; zaznacz opisy dodatkowe w kroku 3.</p></details>
     <details><summary>Temu i Amazon: część treści siedzi w „parametrach". Czy narzędzie to widzi?</summary><p>Nie w tej wersji. Dla niektórych integracji BASE trzyma tytuły i bullet pointy także w obiekcie <span class="mono">features</span> (np. <span class="mono">temu_title_pl</span>, <span class="mono">amazon_bullet_1_pl</span>). Narzędzie eksportuje pola <span class="mono">name</span>, <span class="mono">description</span> i opisy dodatkowe. Obsługa <span class="mono">features</span> jest na liście na przyszłość.</p></details>
+    <details><summary>Co zbieracie, kiedy używam narzędzia?</summary><p>Anonimowe zdarzenia użycia (np. „eksport: Allegro, 5 700 produktów, wynik audytu 64") — bez tokena, bez treści ofert, bez cookies i bez identyfikacji osoby. Służą do rozwoju narzędzia. Dane kontaktowe trafiają do nas tylko wtedy, gdy sam wypełnisz formularz w raporcie audytu. Szczegóły w <a href="/polityka-prywatnosci">polityce prywatności</a>.</p></details>
     <details><summary>Czy mogę postawić własną kopię?</summary><p>Tak. <a href="https://github.com/feedor24/opisy-z-base" target="_blank" rel="noopener">Repozytorium jest publiczne</a> (licencja MIT). To statyczny HTML plus jedna funkcja serverless. Deploy na Vercelu zajmuje dwie minuty i nie wymaga żadnej konfiguracji ani zmiennych środowiskowych.</p></details>
     <details><summary>Kto odpowiada, jeśli coś pójdzie nie tak?</summary><p>Narzędzie jest bezpłatne i udostępniane „tak jak jest". Działa na Twoim koncie BASE, Twoim tokenem i na Twoje polecenie — dlatego to Ty decydujesz, co i kiedy zapisać, a przed każdym importem masz podgląd zmian i kopię zapasową. Szczegóły w <a href="/regulamin">regulaminie</a>; jak przetwarzamy dane — w <a href="/polityka-prywatnosci">polityce prywatności</a>.</p></details>
     <details><summary>Nie działa / mam pomysł na funkcję. Gdzie pisać?</summary><p>Na <a href="mailto:maciej.fidor@mediafy.com.pl">maciej.fidor@mediafy.com.pl</a> albo jako <a href="https://github.com/feedor24/opisy-z-base/issues" target="_blank" rel="noopener">issue w repozytorium</a>. Jeśli coś się wysypało, dołącz komunikat błędu z narzędzia — zawiera kod błędu z API BASE, który od razu mówi, co się stało.</p></details>

@@ -21,7 +21,7 @@
   <p class="meta">Wersja 1.0 · obowiązuje od <span class="fill">[UZUPEŁNIJ datę publikacji]</span></p>
 
   <div class="summary">
-    <b>W skrócie.</b> Narzędzie nie ma kont, bazy danych, plików cookie, analityki ani reklam. Twój token API BASE trafia do naszego serwera tylko na czas pojedynczego żądania i nie jest zapisywany. Dane produktów są przetwarzane w Twojej przeglądarce. Jedyne dane, które powstają po naszej stronie, to standardowe logi techniczne hostingu.
+    <b>W skrócie.</b> Narzędzie nie ma kont, plików cookie ani reklam. Twój token API BASE trafia do naszego serwera tylko na czas pojedynczego żądania i nie jest zapisywany. Dane produktów są przetwarzane w Twojej przeglądarce. Zbieramy anonimowe statystyki użycia (który kanał, ile produktów, wynik audytu) oraz — wyłącznie gdy sam wypełnisz formularz w raporcie — Twoje dane kontaktowe.
   </div>
 
   <h2>1. Administrator danych</h2>
@@ -49,6 +49,24 @@
       <td>Przetwarzane wyłącznie w pamięci Twojej przeglądarki i przejściowo, w trakcie przekazywania żądania, na serwerze proxy. Nie są zapisywane</td>
     </tr>
     <tr>
+      <td><b>Anonimowe zdarzenia użycia</b> — rodzaj zdarzenia (połączenie, eksport, import, pobranie raportu), nazwa kanału i język, liczba produktów, zbiorcze wyniki audytu, losowy identyfikator sesji (żyje do zamknięcia karty), typ przeglądarki, skrócony skrót (hash) adresu IP</td>
+      <td>Statystyki użycia, rozwój narzędzia, ochrona przed nadużyciami</td>
+      <td>art. 6 ust. 1 lit. f — prawnie uzasadniony interes Administratora</td>
+      <td>24 miesiące. Nie zawierają tokena, treści ofert ani danych pozwalających Cię zidentyfikować</td>
+    </tr>
+    <tr>
+      <td><b>Statystyki odwiedzin strony</b> — Vercel Web Analytics: odsłony, kraj, typ urządzenia, źródło wejścia; bez cookies i bez identyfikatora użytkownika</td>
+      <td>Pomiar ruchu na stronie</td>
+      <td>art. 6 ust. 1 lit. f</td>
+      <td>Zgodnie z polityką Vercel; dane zagregowane</td>
+    </tr>
+    <tr>
+      <td><b>Dane z formularza w raporcie audytu</b> — firma, imię i nazwisko, e-mail, telefon, treść wiadomości, zbiorczy wynik audytu, nazwa kanału</td>
+      <td>Kontakt w sprawie Twoich ofert, przedstawienie oferty usług Mediafy / MAMS</td>
+      <td>art. 6 ust. 1 lit. a — Twoja zgoda (checkbox w formularzu); lit. b — działania przed zawarciem umowy na Twoje żądanie</td>
+      <td>Do wycofania zgody lub zakończenia rozmów, maksymalnie 24 miesiące od ostatniego kontaktu</td>
+    </tr>
+    <tr>
       <td><b>Dane z korespondencji</b> — adres e-mail, treść wiadomości, gdy piszesz do nas</td>
       <td>Odpowiedź na pytanie, obsługa reklamacji</td>
       <td>art. 6 ust. 1 lit. f (odpowiedź na kontakt) / lit. c (reklamacje)</td>
@@ -60,19 +78,20 @@
   <h2>3. Odbiorcy danych</h2>
   <ul>
     <li><b>Vercel Inc.</b> (USA) — dostawca hostingu strony i funkcji proxy. Vercel przetwarza logi techniczne oraz przejściowo treść żądań. Przekazywanie danych do USA odbywa się na podstawie decyzji Komisji Europejskiej w sprawie ram ochrony danych UE-USA (EU-U.S. Data Privacy Framework) oraz standardowych klauzul umownych stosowanych przez Vercel.</li>
+    <li><b>Supabase Inc.</b> — dostawca bazy danych, w której przechowujemy anonimowe zdarzenia użycia i dane z formularza kontaktowego (serwery w Unii Europejskiej; umowa powierzenia w ramach warunków usługi Supabase).</li>
     <li><b>BaseLinker sp. z o.o.</b> — operator systemu BASE, do którego API kierowane są żądania. Nie „przekazujemy" mu Twoich danych: żądanie wykonywane jest w Twoim imieniu, na Twoim koncie, na podstawie umowy, którą masz z operatorem BASE.</li>
   </ul>
-  <p>Nie sprzedajemy danych, nie przekazujemy ich do celów marketingowych i nie korzystamy z zewnętrznych narzędzi analitycznych, pikseli ani sieci reklamowych.</p>
+  <p>Nie sprzedajemy danych, nie przekazujemy ich innym podmiotom do celów marketingowych i nie korzystamy z pikseli ani sieci reklamowych.</p>
 
   <h2>4. Pliki cookie i pamięć przeglądarki</h2>
   <ul>
     <li>Narzędzie <b>nie używa plików cookie</b> — ani własnych, ani zewnętrznych. Dlatego nie wyświetlamy banera zgody.</li>
-    <li>Strona nie ładuje zasobów z zewnętrznych serwisów (czcionki, skrypty i biblioteki są hostowane razem ze stroną), więc odwiedziny nie są ujawniane podmiotom trzecim innym niż dostawca hostingu.</li>
+    <li>Strona nie ładuje czcionek ani bibliotek z zewnętrznych serwisów (są hostowane razem ze stroną). Skrypt statystyk Vercel Web Analytics jest ładowany z tej samej domeny, nie ustawia cookies ani identyfikatorów użytkownika.</li>
     <li>Pamięć przeglądarki (<span class="mono">sessionStorage</span> / <span class="mono">localStorage</span>) jest używana wyłącznie do przechowania Twojego tokena API na Twoim urządzeniu — <span class="mono">localStorage</span> tylko wtedy, gdy sam zaznaczysz opcję „Zapamiętaj token w tej przeglądarce". Token usuniesz przyciskiem „Rozłącz i usuń token" albo czyszcząc dane strony w przeglądarce.</li>
   </ul>
 
   <h2>5. Twoje prawa</h2>
-  <p>Przysługuje Ci prawo dostępu do danych, ich sprostowania, usunięcia, ograniczenia przetwarzania, przenoszenia oraz sprzeciwu wobec przetwarzania opartego na prawnie uzasadnionym interesie. Masz też prawo wnieść skargę do Prezesa Urzędu Ochrony Danych Osobowych (ul. Stawki 2, 00-193 Warszawa). Żądania kieruj na adres e-mail Administratora. Ze względu na to, że nie prowadzimy kont ani nie zapisujemy tokenów i danych produktów, w praktyce jedynymi danymi, które możemy zidentyfikować, są dane z korespondencji e-mail.</p>
+  <p>Przysługuje Ci prawo dostępu do danych, ich sprostowania, usunięcia, ograniczenia przetwarzania, przenoszenia, sprzeciwu wobec przetwarzania opartego na prawnie uzasadnionym interesie oraz wycofania zgody w dowolnym momencie (bez wpływu na zgodność z prawem przetwarzania przed wycofaniem). Masz też prawo wnieść skargę do Prezesa Urzędu Ochrony Danych Osobowych (ul. Stawki 2, 00-193 Warszawa). Żądania kieruj na adres e-mail Administratora. W praktyce jedynymi danymi, które pozwalają Cię zidentyfikować, są dane z formularza kontaktowego i korespondencji e-mail.</p>
 
   <h2>6. Zautomatyzowane decyzje i profilowanie</h2>
   <p>Nie podejmujemy decyzji opartych wyłącznie na zautomatyzowanym przetwarzaniu i nie profilujemy użytkowników.</p>

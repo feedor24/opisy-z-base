@@ -9,6 +9,8 @@
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="fonts.css">
 <script src="vendor/xlsx.full.min.js"></script>
+<script src="audit.js"></script>
+<script defer src="/_vercel/insights/script.js"></script>
 <style>
 :root{
   --ink:#0F172A;--ink-soft:#334155;--muted:#64748B;--white:#fff;
@@ -145,6 +147,12 @@ td .new{color:var(--ink);display:block;white-space:pre-wrap;word-break:break-wor
 .eye{position:absolute;right:8px;top:50%;transform:translateY(-50%);border:0;background:var(--surface-2);color:var(--ink-soft);font-size:12px;font-weight:600;padding:5px 9px;border-radius:8px;cursor:pointer}
 .eye:hover{background:var(--line)}
 .logged{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.audit-head{display:flex;gap:20px;align-items:center;flex-wrap:wrap}
+.audit-head .ring svg{display:block}
+.audit-grade{font-family:var(--fd);font-weight:800;font-size:20px;letter-spacing:-.02em}
+.fixlist{list-style:none;display:grid;gap:8px;margin-top:14px}
+.fixlist li{display:flex;gap:10px;align-items:flex-start;font-size:14px;color:var(--ink-soft)}
+.fixlist li::before{content:"!";flex-shrink:0;width:20px;height:20px;border-radius:50%;background:#FEF2F2;color:#B91C1C;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;margin-top:1px}
 .foot{text-align:center;color:var(--muted);font-size:13px;margin-top:40px}
 .foot a{color:var(--muted);text-decoration:underline}
 :focus-visible{outline:3px solid #818CF8;outline-offset:2px}
@@ -233,9 +241,11 @@ label.cb input{width:16px;height:16px;accent-color:var(--primary)}
       <div class="row" id="fields"></div>
       <div class="hint" style="margin:14px 0 8px">Zakres produktów:</div>
       <div class="row">
-        <button class="chip on" data-scope="all">Wszystkie produkty</button>
+        <button class="chip on" data-scope="listed" id="scope-listed">Wystawione na tym kanale</button>
+        <button class="chip" data-scope="all">Wszystkie produkty w katalogu</button>
         <button class="chip" data-scope="list">Wybrane SKU</button>
       </div>
+      <p class="hint" id="scope-hint">„Wystawione" = produkty, które mają w BASE przypisaną kategorię marketplace dla tego kanału (BASE wymaga jej, żeby wystawić ofertę). API BASE nie udostępnia listy ofert wprost, więc to najlepszy dostępny sygnał. W pliku i tak dostajesz kolumnę <b>Przypisanie do kanału</b>.</p>
       <div id="sku-wrap" class="hide" style="margin-top:10px">
         <textarea id="sku" placeholder="Wklej listę SKU — każdy w nowej linii albo po przecinku"></textarea>
         <div class="hint" id="sku-count">Nie wklejono jeszcze żadnych SKU</div>
@@ -254,6 +264,24 @@ label.cb input{width:16px;height:16px;accent-color:var(--primary)}
         <div class="status" id="exp-status"></div>
       </div>
       <p class="hint" style="text-align:center">Kolumna <b>Źródło</b> w pliku mówi, czy wartość jest pisana pod ten kanał, czy schodzi z tłumaczenia albo z opisu bazowego.</p>
+    </div>
+
+    <div class="card hide" id="card-audit">
+      <div class="step"><span class="num">✓</span><h2>Audyt treści kanału</h2><span class="meta" id="audit-meta"></span></div>
+      <div class="audit-head">
+        <div class="ring" id="audit-ring"></div>
+        <div>
+          <div class="audit-grade" id="audit-grade"></div>
+          <p class="hint" style="margin-top:4px" id="audit-sub"></p>
+          <div class="row" style="margin-top:12px">
+            <button class="btn btn-primary" id="btn-report">Pobierz raport audytu (HTML)</button>
+            <button class="btn btn-ghost" id="btn-report-open">Otwórz w nowej karcie</button>
+          </div>
+        </div>
+      </div>
+      <div class="stats" id="audit-stats"></div>
+      <div id="audit-fix"></div>
+      <p class="hint">Raport to jeden plik HTML — otwiera się w każdej przeglądarce, drukuje do PDF i ma listę „co jest dobrze / do poprawy" plus oferty z największą liczbą uwag.</p>
     </div>
   </div>
 
@@ -364,7 +392,8 @@ const S = {
   channels: [],        // [{id, label, langs:[...]}]
   defaultLangs: [],    // języki z kluczy bez integracji (name|de)
   // eksport
-  channel: null, lang: null, fields: ['name', 'description'], scope: 'all', format: 'xlsx',
+  channel: null, lang: null, fields: ['name', 'description'], scope: 'listed', format: 'xlsx',
+  lastAudit: null, lastReport: null, lastCtx: null,
   // import
   file: null, rows: [], meta: null,
   iChannel: null, iLang: null, iLevel: 'channel', iFields: ['name', 'description'],
@@ -434,6 +463,7 @@ async function connect(token, remember) {
     $('token-form').classList.add('hide');
     $('token-ok').classList.remove('hide');
     $('token-meta').textContent = 'token ****' + token.slice(-4);
+    track('connect', { products: S.inventories.length });
     await loadInventory(Number(def.inventory_id));
   } catch (e) {
     S.token = null;
@@ -508,6 +538,7 @@ function renderChannels(gridId, langsId, wrapId, chKey, langKey, after) {
     b.querySelector('.k').textContent = ch.pseudo ? 'pola bazowe i tłumaczenia' : (ch.all ? 'wszystkie konta · ' : (ch.acct ? ch.acct + ' · ' : '')) + ch.id;
     b.onclick = () => {
       if (S.busy) return;
+      if (gridId === 'channels') $('card-audit').classList.add('hide');
       grid.querySelectorAll('.tile').forEach(x => x.classList.remove('on'));
       b.classList.add('on');
       S[chKey] = ch;
@@ -574,6 +605,24 @@ function cascade(tf, field, lang, integ) {
   }
   return { value: '', src: 'none' };
 }
+/* Przypisanie produktu do kanału: kategoria marketplace (BASE wymaga jej do wystawienia)
+   i/lub treści nadpisane dla tego kanału. integ np. "allegro_9576"; Amazon trzyma kategorie pod amazon_0|site. */
+function channelAssignment(tf, integ) {
+  if (!integ) return { cat: '', text: false, label: '' };
+  const type = integ.replace(/_\d+$/, '');
+  let cat = '';
+  let text = false;
+  for (const k in tf) {
+    if (k.startsWith('marketplace_category_id|')) {
+      const rest = k.slice('marketplace_category_id|'.length);
+      const src = rest.split('|')[0];
+      if (src === integ || src === type + '_0') { if (tf[k] !== '' && tf[k] != null) cat = cat || String(tf[k]); }
+    } else if (k.endsWith('|' + integ) && tf[k] !== '' && tf[k] != null) text = true;
+  }
+  const label = cat && text ? 'kategoria + treści' : cat ? 'kategoria' : text ? 'tylko treści' : 'brak';
+  return { cat, text, label };
+}
+
 function targetKey(field, level, lang, integ) {
   if (level === 'channel' && integ && lang) return field + '|' + lang + '|' + integ;
   if (level !== 'base' && lang) return field + '|' + lang;
@@ -602,7 +651,7 @@ async function fetchData(ids, onProgress) {
   for (let i = 0; i < ids.length; i += BATCH_READ) {
     const chunk = ids.slice(i, i + BATCH_READ);
     onProgress && onProgress(Math.min(i + chunk.length, ids.length), ids.length);
-    const d = await bl('getInventoryProductsData', { inventory_id: S.inventoryId, products: chunk });
+    const d = await bl('getInventoryProductsData', { inventory_id: S.inventoryId, products: chunk, include_marketplace_categories: true });
     for (const [id, p] of Object.entries(d.products || {})) res.set(Number(id), p);
     if (i + BATCH_READ < ids.length) await sleep(GAP_MS);
   }
@@ -621,6 +670,12 @@ function refreshExportBtn() {
   if (!S.channel) { b.disabled = true; b.textContent = 'Wybierz kanał, żeby zacząć'; return; }
   if (!S.fields.length) { b.disabled = true; b.textContent = 'Zaznacz przynajmniej jedno pole'; return; }
   if (S.scope === 'list' && !parseSkuList($('sku').value).length) { b.disabled = true; b.textContent = 'Wklej listę SKU'; return; }
+  // pseudo-kanał (katalog) nie ma pojęcia "wystawione"
+  const listedBtn = $('scope-listed');
+  if (S.channel.pseudo) {
+    listedBtn.classList.add('hide'); $('scope-hint').classList.add('hide');
+    if (S.scope === 'listed') { S.scope = 'all'; document.querySelectorAll('[data-scope]').forEach(x => x.classList.toggle('on', x.dataset.scope === 'all')); }
+  } else { listedBtn.classList.remove('hide'); $('scope-hint').classList.remove('hide'); }
   b.disabled = false;
   b.textContent = 'Eksportuj — ' + S.channel.label + (S.lang ? ' · ' + S.lang.toUpperCase() : '');
 }
@@ -669,9 +724,19 @@ $('btn-export').onclick = async () => {
     });
 
     products.sort((a, b) => a.sku.localeCompare(b.sku, 'pl'));
+    // zakres "wystawione": tylko produkty z przypisaną kategorią marketplace dla tego kanału
+    let skippedNotListed = 0;
+    if (S.scope === 'listed' && integ) {
+      const before = products.length;
+      products = products.filter(p => channelAssignment(((data.get(p.id) || {}).text_fields || {}), integ).cat);
+      skippedNotListed = before - products.length;
+      if (!products.length) throw new Error('Żaden produkt nie ma przypisanej kategorii dla tego kanału. Wybierz zakres „Wszystkie produkty w katalogu".');
+    }
+    const auditItems = [];
     const rows = products.map(p => {
       const tf = (data.get(p.id) || {}).text_fields || {};
       const row = { 'SKU': p.sku, 'ID BASE': p.id, 'EAN': p.ean };
+      const it = { sku: p.sku, ean: p.ean, name: '', nameSrc: '', desc: '', descSrc: '' };
       S.fields.forEach(f => {
         const c = cascade(tf, f, lang, integ);
         let v = c.value;
@@ -680,7 +745,16 @@ $('btn-export').onclick = async () => {
         row[FIELD_LABELS[f]] = v;
         if (f === 'description') row['Znaków w opisie'] = len;
         row['Źródło: ' + FIELD_LABELS[f]] = SRC_LABEL[c.src];
+        if (f === 'name') { it.name = c.value; it.nameSrc = SRC_LABEL[c.src]; }
+        if (f === 'description') { it.desc = c.value; it.descSrc = SRC_LABEL[c.src]; }
       });
+      if (integ) {
+        const asg = channelAssignment(tf, integ);
+        row['Przypisanie do kanału'] = asg.label;
+        row['Kategoria marketplace (ID)'] = asg.cat;
+        it.assign = asg.label;
+      }
+      auditItems.push(it);
       return row;
     });
 
@@ -698,14 +772,54 @@ $('btn-export').onclick = async () => {
     saveFile(rows, meta, fname, S.format);
 
     let msg = 'Gotowe — ' + rows.length + ' produktów';
+    if (skippedNotListed) msg += ' (pominięto ' + skippedNotListed + ' bez kategorii dla tego kanału)';
     if (missing.length) msg += ' · nie znaleziono: ' + missing.slice(0, 20).join(', ') + (missing.length > 20 ? '…' : '');
     expStatus(msg, 'ok'); expBar(100);
+
+    // audyt (tylko gdy eksportujemy nazwę i opis)
+    if (S.fields.includes('name') && S.fields.includes('description')) {
+      const scopeLabel = S.scope === 'listed' ? 'oferty wystawione na kanale (z przypisaną kategorią)' : S.scope === 'list' ? 'wybrane SKU' : 'wszystkie produkty w katalogu';
+      const invName = (S.inventories.find(i => Number(i.inventory_id) === Number(S.inventoryId)) || {}).name || String(S.inventoryId);
+      const ctx = { channelLabel: S.channel.label, channelType: integ.replace(/_\d+$/, ''), lang, scope: S.scope, scopeLabel, inventoryName: invName, date: new Date().toLocaleDateString('pl-PL', { day: 'numeric', month: 'long', year: 'numeric' }), trackUrl: location.origin + '/api/track' };
+      try { showAudit(OpisyAudit.computeAudit(auditItems, ctx), ctx); } catch (e) { console.warn('audyt', e); }
+    }
+    track('export_done', { channel: S.channel.label, channel_type: integ.replace(/_\d+$/, ''), lang, scope: S.scope, products: rows.length, summary: S.lastAudit ? { score: S.lastAudit.total, descChannelPct: Math.round(S.lastAudit.m.descChannel / S.lastAudit.n * 100), descAvg: S.lastAudit.m.descAvg, skippedNotListed } : { skippedNotListed } });
   } catch (e) {
     expStatus('Błąd: ' + e.message, 'err'); expBar(0);
   } finally {
     S.busy = false; refreshExportBtn();
   }
 };
+
+function showAudit(a, ctx) {
+  S.lastAudit = a; S.lastCtx = ctx; S.lastReport = OpisyAudit.buildReport(a, ctx);
+  const card = $('card-audit'); card.classList.remove('hide');
+  const color = a.total >= 80 ? '#047857' : a.total >= 60 ? '#B45309' : a.total >= 40 ? '#C2410C' : '#B91C1C';
+  const r = 40, c = 2 * Math.PI * r, o = c * (1 - a.total / 100);
+  $('audit-ring').innerHTML = '<svg viewBox="0 0 100 100" width="96" height="96"><circle cx="50" cy="50" r="' + r + '" fill="none" stroke="#E2E8F0" stroke-width="9"/><circle cx="50" cy="50" r="' + r + '" fill="none" stroke="' + color + '" stroke-width="9" stroke-linecap="round" stroke-dasharray="' + c.toFixed(1) + '" stroke-dashoffset="' + o.toFixed(1) + '" transform="rotate(-90 50 50)"/><text x="50" y="58" text-anchor="middle" font-family="Manrope,Inter,system-ui" font-weight="800" font-size="26" fill="#0F172A">' + a.total + '</text></svg>';
+  $('audit-grade').textContent = (a.total >= 80 ? 'Bardzo dobrze' : a.total >= 60 ? 'Dobrze, jest co poprawić' : a.total >= 40 ? 'Słabo — treści hamują sprzedaż' : 'Krytycznie') + ' · ' + a.total + '/100';
+  $('audit-grade').style.color = color;
+  $('audit-sub').textContent = ctx.channelLabel + (ctx.lang ? ' · ' + ctx.lang.toUpperCase() : '') + ' · ' + a.n + ' ofert · ' + ctx.scopeLabel;
+  $('audit-meta').textContent = ctx.date;
+  const m = a.m, pc = (x) => a.n ? Math.round(x / a.n * 100) : 0;
+  $('audit-stats').innerHTML = [
+    ['accent', pc(m.descChannel) + '%', 'opisów pisanych pod kanał'],
+    ['', m.descAvg.toLocaleString('pl-PL'), 'średnia długość opisu'],
+    [m.descEmpty + m.descShort ? 'warn' : '', (m.descEmpty + m.descShort).toLocaleString('pl-PL'), 'opisów pustych lub < 300 zn.'],
+    [m.nameOver ? 'warn' : '', m.nameOver.toLocaleString('pl-PL'), 'tytułów ponad limit ' + m.limit + ' zn.'],
+  ].map(([cls, v, l]) => '<div class="stat ' + cls + '"><div class="v">' + v + '</div><div class="l">' + l + '</div></div>').join('');
+  $('audit-fix').innerHTML = a.fix.length ? '<ul class="fixlist">' + a.fix.slice(0, 4).map(t => '<li>' + escapeHtml(t) + '</li>').join('') + (a.fix.length > 4 ? '<li style="color:var(--muted)">… i ' + (a.fix.length - 4) + ' kolejnych w raporcie</li>' : '') + '</ul>' : '';
+  card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+function reportName() { return 'AUDYT_' + slug(S.lastCtx.channelLabel) + (S.lastCtx.lang ? '_' + S.lastCtx.lang : '') + '_' + new Date().toISOString().slice(0, 10) + '.html'; }
+$('btn-report').onclick = () => { if (!S.lastReport) return; download(new Blob([S.lastReport], { type: 'text/html;charset=utf-8' }), reportName()); track('report_download', { channel: S.lastCtx.channelLabel, summary: { score: S.lastAudit.total } }); };
+$('btn-report-open').onclick = () => { if (!S.lastReport) return; const u = URL.createObjectURL(new Blob([S.lastReport], { type: 'text/html;charset=utf-8' })); window.open(u, '_blank'); track('report_open', { channel: S.lastCtx.channelLabel, summary: { score: S.lastAudit.total } }); };
+
+/* anonimowe zdarzenia użycia — bez cookies; id sesji żyje do zamknięcia karty */
+function sessionId() { try { let id = sessionStorage.getItem('opisy_sid'); if (!id) { id = Math.random().toString(36).slice(2) + Date.now().toString(36); sessionStorage.setItem('opisy_sid', id); } return id; } catch { return ''; } }
+function track(event, extra) {
+  try { fetch('/api/track', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(Object.assign({ type: 'event', event, session: sessionId(), page: location.pathname }, extra || {})), keepalive: true }).catch(() => {}); } catch {}
+}
 
 function slug(s) { return s.toLowerCase().replace(/[^a-z0-9ąćęłńóśźż]+/g, '-').replace(/^-|-$/g, ''); }
 
@@ -978,6 +1092,7 @@ async function writeChanges() {
     if (i + 1 < items.length) await sleep(GAP_MS);
   }
   wrStatus('Zapisano ' + ok + ' produktów' + (fail ? ', błędów: ' + fail : ''), fail ? 'err' : 'ok');
+  track('import_done', { channel: S.iChannel.label, channel_type: (P.integ || '').replace(/_\d+$/, ''), lang: P.lang, scope: S.iLevel, products: ok, summary: { fail } });
   const res = $('wr-result'); res.innerHTML = '';
   const b = document.createElement('button'); b.className = 'btn btn-ghost btn-sm'; b.style.marginTop = '12px';
   b.textContent = 'Pobierz raport importu (XLSX)';
