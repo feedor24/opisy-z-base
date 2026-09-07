@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Regulamin — Opisy z BASE</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="fonts.css">
+<link rel="stylesheet" href="doc.css">
+</head>
+<body>
+<div class="nav"><div class="wrap">
+  <a class="brand" href="/"><svg width="26" height="26" viewBox="0 0 48 48" fill="none" aria-hidden="true"><g stroke="#4F46E5" stroke-width="2.4" stroke-linecap="round"><path d="M11 36 L18 25" opacity=".55"/><path d="M24 38 L18 25" opacity=".55"/><path d="M24 38 L30 25" opacity=".55"/><path d="M37 36 L30 25" opacity=".55"/><path d="M18 25 L24 13" opacity=".85"/><path d="M30 25 L24 13" opacity=".85"/></g><g fill="#4F46E5"><circle cx="11" cy="36" r="3.4"/><circle cx="24" cy="38" r="3.4"/><circle cx="37" cy="36" r="3.4"/><circle cx="18" cy="25" r="3.4"/><circle cx="30" cy="25" r="3.4"/></g><circle cx="24" cy="11" r="5" fill="#7C3AED"/></svg>mams <small>Opisy z BASE</small></a>
+  <nav><a href="/">Strona główna</a><a href="/app">Narzędzie</a><a href="/polityka-prywatnosci">Polityka prywatności</a></nav>
+</div></div>
+
+<main class="wrap doc">
+  <div class="eyebrow">Dokument</div>
+  <h1>Regulamin narzędzia „Opisy z BASE"</h1>
+  <p class="meta">Wersja 1.0 · obowiązuje od <span class="fill">[UZUPEŁNIJ datę publikacji]</span></p>
+
+  <p class="intro">Regulamin określa zasady nieodpłatnego korzystania z narzędzia internetowego „Opisy z BASE" (dalej: <b>Narzędzie</b>), dostępnego pod adresem <span class="fill">[UZUPEŁNIJ adres strony]</span>, zgodnie z art. 8 ustawy z dnia 18 lipca 2002 r. o świadczeniu usług drogą elektroniczną.</p>
+
+  <h2>§ 1. Usługodawca i kontakt</h2>
+  <ol>
+    <li>Usługodawcą jest <span class="fill">[UZUPEŁNIJ: pełna nazwa podmiotu, forma prawna, adres siedziby, NIP, REGON / KRS]</span>, działający pod marką Mediafy / MAMS (dalej: <b>Usługodawca</b>).</li>
+    <li>Kontakt z Usługodawcą: e-mail <a href="mailto:maciej.fidor@mediafy.com.pl">maciej.fidor@mediafy.com.pl</a>.</li>
+  </ol>
+
+  <h2>§ 2. Rodzaj i zakres usługi</h2>
+  <ol>
+    <li>Narzędzie umożliwia Użytkownikowi, posiadającemu własne konto w systemie BASE (BaseLinker), za pomocą jego własnego tokena API:
+      <ol type="a">
+        <li>pobranie (eksport) nazw i opisów produktów z katalogu BASE dla wybranego kanału sprzedaży i języka do pliku XLSX lub CSV,</li>
+        <li>zapisanie (import) zmienionych nazw i opisów z pliku XLSX/CSV z powrotem do katalogu BASE.</li>
+      </ol>
+    </li>
+    <li>Usługa jest świadczona nieodpłatnie, bez rejestracji i bez zakładania konta u Usługodawcy.</li>
+    <li>Narzędzie komunikuje się z systemem BASE wyłącznie przez oficjalne API BaseLinker, w imieniu i na polecenie Użytkownika. Usługodawca nie jest stroną umowy między Użytkownikiem a operatorem BASE i nie ma dostępu do konta Użytkownika poza zakresem pojedynczego żądania wykonywanego na jego polecenie.</li>
+    <li>Narzędzie nie jest produktem operatora systemu BASE ani nie jest przez niego wspierane. Nazwy „BASE" i „BaseLinker" są znakami towarowymi ich właściciela.</li>
+  </ol>
+
+  <h2>§ 3. Warunki techniczne</h2>
+  <ol>
+    <li>Do korzystania z Narzędzia potrzebne są: urządzenie z dostępem do internetu, aktualna przeglądarka internetowa z włączoną obsługą JavaScript oraz aktywne konto w systemie BASE z wygenerowanym tokenem API.</li>
+    <li>Narzędzie działa w przeglądarce Użytkownika. Serwer Usługodawcy pełni wyłącznie rolę pośrednika technicznego (proxy) między przeglądarką a API BASE i nie przechowuje danych Użytkownika.</li>
+    <li>Do zapisu tokena w przeglądarce (opcja „Zapamiętaj token w tej przeglądarce") wykorzystywana jest pamięć lokalna przeglądarki (localStorage). Bez zaznaczenia tej opcji token jest przechowywany wyłącznie w pamięci bieżącej karty (sessionStorage) i usuwany po jej zamknięciu.</li>
+  </ol>
+
+  <h2>§ 4. Zawarcie i rozwiązanie umowy</h2>
+  <ol>
+    <li>Umowa o świadczenie usługi drogą elektroniczną zostaje zawarta z chwilą rozpoczęcia korzystania z Narzędzia, tj. wklejenia tokena API i połączenia z BASE. Korzystanie z Narzędzia oznacza akceptację Regulaminu.</li>
+    <li>Umowa ulega rozwiązaniu z chwilą zakończenia korzystania z Narzędzia (zamknięcia strony lub użycia przycisku „Rozłącz i usuń token"). Użytkownik może w każdej chwili unieważnić token po stronie BASE.</li>
+  </ol>
+
+  <h2>§ 5. Obowiązki Użytkownika</h2>
+  <ol>
+    <li>Użytkownik oświadcza, że jest uprawniony do korzystania z konta BASE, którego token wkleja do Narzędzia, oraz do modyfikowania danych produktów w tym koncie.</li>
+    <li>Użytkownik odpowiada za bezpieczeństwo swojego tokena API, w szczególności za to, komu udostępnia urządzenie i przeglądarkę, w której token został zapamiętany.</li>
+    <li>Użytkownik odpowiada za treść danych, które importuje do BASE, w tym za ich zgodność z prawem, regulaminami BASE oraz regulaminami marketplace'ów, na które treści są publikowane.</li>
+    <li>Przed każdym importem Użytkownik zobowiązany jest zapoznać się z podglądem zmian oraz pobrać i zachować kopię zapasową udostępnianą przez Narzędzie.</li>
+    <li>Zabronione jest dostarczanie treści o charakterze bezprawnym, wykorzystywanie Narzędzia w sposób naruszający prawo lub regulamin API BaseLinker, a także podejmowanie działań mogących zakłócić działanie Narzędzia (w szczególności automatyczne, masowe wywoływanie proxy poza interfejsem Narzędzia).</li>
+  </ol>
+
+  <h2>§ 6. Odpowiedzialność</h2>
+  <ol>
+    <li>Narzędzie jest udostępniane nieodpłatnie, w stanie „takim, jakie jest" (as is), bez gwarancji nieprzerwanego lub bezbłędnego działania.</li>
+    <li>Wszystkie operacje zapisu w BASE są wykonywane wyłącznie na wyraźne polecenie Użytkownika, po wyświetleniu podglądu zmian i potwierdzeniu. Skutki tych operacji obciążają Użytkownika.</li>
+    <li>W najszerszym zakresie dopuszczalnym przez prawo Usługodawca nie ponosi odpowiedzialności za: utratę lub zmianę danych w koncie BASE Użytkownika będącą skutkiem importu, działanie, dostępność, limity lub zmiany API BASE, przerwy w działaniu Narzędzia, szkody wynikające z udostępnienia tokena osobom trzecim ani za utracone korzyści.</li>
+    <li>Ograniczenia z ust. 3 nie wyłączają odpowiedzialności Usługodawcy za szkodę wyrządzoną umyślnie oraz nie ograniczają uprawnień konsumentów wynikających z bezwzględnie obowiązujących przepisów prawa.</li>
+    <li>Usługodawca może w każdej chwili zmienić zakres Narzędzia, zawiesić lub zakończyć jego udostępnianie bez podawania przyczyny. Narzędzie nie jest usługą o gwarantowanej dostępności.</li>
+  </ol>
+
+  <h2>§ 7. Reklamacje</h2>
+  <ol>
+    <li>Reklamacje dotyczące działania Narzędzia można zgłaszać na adres e-mail wskazany w § 1 ust. 2, podając opis problemu, datę wystąpienia i — jeśli to możliwe — treść komunikatu błędu wyświetlonego przez Narzędzie.</li>
+    <li>Usługodawca rozpatruje reklamację w terminie 14 dni od jej otrzymania i odpowiada na adres e-mail, z którego została wysłana.</li>
+  </ol>
+
+  <h2>§ 8. Własność intelektualna</h2>
+  <ol>
+    <li>Kod źródłowy Narzędzia jest udostępniony publicznie na licencji MIT w repozytorium <a href="https://github.com/feedor24/opisy-z-base" target="_blank" rel="noopener">github.com/feedor24/opisy-z-base</a>. Licencja MIT określa zasady korzystania z kodu, w tym prawo do uruchamiania własnych kopii.</li>
+    <li>Nazwa i znak graficzny MAMS oraz Mediafy są własnością Usługodawcy. Nazwy BASE, BaseLinker oraz nazwy marketplace'ów należą do ich właścicieli i są używane wyłącznie w celu opisania funkcji Narzędzia.</li>
+  </ol>
+
+  <h2>§ 9. Dane osobowe</h2>
+  <p>Zasady przetwarzania danych osobowych w związku z korzystaniem z Narzędzia opisuje <a href="/polityka-prywatnosci">Polityka prywatności</a>, stanowiąca integralną część niniejszego Regulaminu.</p>
+
+  <h2>§ 10. Postanowienia końcowe</h2>
+  <ol>
+    <li>Usługodawca może zmienić Regulamin. Nowa wersja jest publikowana na tej stronie z datą wejścia w życie; korzystanie z Narzędzia po tej dacie oznacza akceptację zmian.</li>
+    <li>W sprawach nieuregulowanych stosuje się prawo polskie, w szczególności Kodeks cywilny oraz ustawę o świadczeniu usług drogą elektroniczną.</li>
+    <li>Jeżeli którekolwiek postanowienie Regulaminu okaże się nieważne, pozostałe postanowienia pozostają w mocy.</li>
+  </ol>
+</main>
+
+<footer class="wrap">© 2026 Mediafy · MAMS · <a href="/">Strona główna</a> · <a href="/polityka-prywatnosci">Polityka prywatności</a> · <a href="mailto:maciej.fidor@mediafy.com.pl">Kontakt</a></footer>
+</body>
+</html>

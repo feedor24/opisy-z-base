@@ -12,9 +12,16 @@ index.html   landing: zalety, jak działa, bezpieczeństwo, instrukcja tokena AP
 app.html     aplikacja (eksport + import) — jeden plik, logika w przeglądarce
 api/base.js  proxy do api.baselinker.com (Vercel serverless) — token z nagłówka, bez zapisu
 img/         zrzuty ekranu do instrukcji tokena: token-1.png … token-5.png (16:10)
+regulamin.html · polityka-prywatnosci.html · doc.css   dokumenty prawne (UŚUDE art. 8, RODO art. 13)
+fonts/ fonts.css   Inter + Manrope hostowane lokalnie (bez Google Fonts)
+vendor/xlsx.full.min.js   SheetJS 0.18.5 hostowany lokalnie (bez CDN)
 ```
 
-Adresy po wdrożeniu (`cleanUrls`): `/` = landing, `/app` = narzędzie, `/api/base` = proxy.
+Adresy po wdrożeniu (`cleanUrls`): `/` = landing, `/app` = narzędzie, `/api/base` = proxy,
+`/regulamin`, `/polityka-prywatnosci`. Strona nie ładuje nic z zewnętrznych domen (prywatność, brak banera cookie).
+
+**Przed publikacją uzupełnij pola `[UZUPEŁNIJ]` w regulaminie i polityce** (dane usługodawcy, data) — dokumenty
+przygotowane jako wzór, do weryfikacji prawnej.
 
 ## Jak działa
 

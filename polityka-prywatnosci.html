@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Polityka prywatności — Opisy z BASE</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="fonts.css">
+<link rel="stylesheet" href="doc.css">
+</head>
+<body>
+<div class="nav"><div class="wrap">
+  <a class="brand" href="/"><svg width="26" height="26" viewBox="0 0 48 48" fill="none" aria-hidden="true"><g stroke="#4F46E5" stroke-width="2.4" stroke-linecap="round"><path d="M11 36 L18 25" opacity=".55"/><path d="M24 38 L18 25" opacity=".55"/><path d="M24 38 L30 25" opacity=".55"/><path d="M37 36 L30 25" opacity=".55"/><path d="M18 25 L24 13" opacity=".85"/><path d="M30 25 L24 13" opacity=".85"/></g><g fill="#4F46E5"><circle cx="11" cy="36" r="3.4"/><circle cx="24" cy="38" r="3.4"/><circle cx="37" cy="36" r="3.4"/><circle cx="18" cy="25" r="3.4"/><circle cx="30" cy="25" r="3.4"/></g><circle cx="24" cy="11" r="5" fill="#7C3AED"/></svg>mams <small>Opisy z BASE</small></a>
+  <nav><a href="/">Strona główna</a><a href="/app">Narzędzie</a><a href="/regulamin">Regulamin</a></nav>
+</div></div>
+
+<main class="wrap doc">
+  <div class="eyebrow">Dokument</div>
+  <h1>Polityka prywatności narzędzia „Opisy z BASE"</h1>
+  <p class="meta">Wersja 1.0 · obowiązuje od <span class="fill">[UZUPEŁNIJ datę publikacji]</span></p>
+
+  <div class="summary">
+    <b>W skrócie.</b> Narzędzie nie ma kont, bazy danych, plików cookie, analityki ani reklam. Twój token API BASE trafia do naszego serwera tylko na czas pojedynczego żądania i nie jest zapisywany. Dane produktów są przetwarzane w Twojej przeglądarce. Jedyne dane, które powstają po naszej stronie, to standardowe logi techniczne hostingu.
+  </div>
+
+  <h2>1. Administrator danych</h2>
+  <p>Administratorem danych osobowych jest <span class="fill">[UZUPEŁNIJ: pełna nazwa podmiotu, adres siedziby, NIP]</span>, działający pod marką Mediafy / MAMS (dalej: <b>Administrator</b>). Kontakt: <a href="mailto:maciej.fidor@mediafy.com.pl">maciej.fidor@mediafy.com.pl</a>.</p>
+
+  <h2>2. Jakie dane przetwarzamy, w jakim celu i na jakiej podstawie</h2>
+  <div class="tbl-wrap"><table>
+    <tr><th>Dane</th><th>Cel</th><th>Podstawa prawna (RODO)</th><th>Jak długo</th></tr>
+    <tr>
+      <td><b>Logi techniczne hostingu</b> — adres IP, typ przeglądarki, czas i adres żądania, kod odpowiedzi</td>
+      <td>Utrzymanie działania i bezpieczeństwa Narzędzia, diagnostyka błędów</td>
+      <td>art. 6 ust. 1 lit. f — prawnie uzasadniony interes Administratora</td>
+      <td>Krótkoterminowo, zgodnie z polityką dostawcy hostingu (Vercel); nie tworzymy własnych kopii logów</td>
+    </tr>
+    <tr>
+      <td><b>Token API BASE</b></td>
+      <td>Przekazanie żądania do API BASE w Twoim imieniu</td>
+      <td>art. 6 ust. 1 lit. b — wykonanie usługi, o którą prosisz</td>
+      <td>Nie jest zapisywany ani logowany po stronie serwera. W przeglądarce: do zamknięcia karty (sessionStorage) albo do momentu usunięcia, jeśli zaznaczysz „Zapamiętaj token" (localStorage)</td>
+    </tr>
+    <tr>
+      <td><b>Dane produktów z Twojego katalogu BASE</b> (SKU, nazwy, opisy) oraz plik, który wgrywasz do importu</td>
+      <td>Wykonanie eksportu lub importu</td>
+      <td>art. 6 ust. 1 lit. b</td>
+      <td>Przetwarzane wyłącznie w pamięci Twojej przeglądarki i przejściowo, w trakcie przekazywania żądania, na serwerze proxy. Nie są zapisywane</td>
+    </tr>
+    <tr>
+      <td><b>Dane z korespondencji</b> — adres e-mail, treść wiadomości, gdy piszesz do nas</td>
+      <td>Odpowiedź na pytanie, obsługa reklamacji</td>
+      <td>art. 6 ust. 1 lit. f (odpowiedź na kontakt) / lit. c (reklamacje)</td>
+      <td>Do zakończenia sprawy, a następnie przez okres przedawnienia ewentualnych roszczeń</td>
+    </tr>
+  </table></div>
+  <p>Dane produktów co do zasady nie są danymi osobowymi. Jeśli w opisach produktów umieszczasz dane osób fizycznych, to Ty jesteś ich administratorem, a my przetwarzamy je wyłącznie przejściowo, na Twoje polecenie, jako podmiot udostępniający narzędzie techniczne.</p>
+
+  <h2>3. Odbiorcy danych</h2>
+  <ul>
+    <li><b>Vercel Inc.</b> (USA) — dostawca hostingu strony i funkcji proxy. Vercel przetwarza logi techniczne oraz przejściowo treść żądań. Przekazywanie danych do USA odbywa się na podstawie decyzji Komisji Europejskiej w sprawie ram ochrony danych UE-USA (EU-U.S. Data Privacy Framework) oraz standardowych klauzul umownych stosowanych przez Vercel.</li>
+    <li><b>BaseLinker sp. z o.o.</b> — operator systemu BASE, do którego API kierowane są żądania. Nie „przekazujemy" mu Twoich danych: żądanie wykonywane jest w Twoim imieniu, na Twoim koncie, na podstawie umowy, którą masz z operatorem BASE.</li>
+  </ul>
+  <p>Nie sprzedajemy danych, nie przekazujemy ich do celów marketingowych i nie korzystamy z zewnętrznych narzędzi analitycznych, pikseli ani sieci reklamowych.</p>
+
+  <h2>4. Pliki cookie i pamięć przeglądarki</h2>
+  <ul>
+    <li>Narzędzie <b>nie używa plików cookie</b> — ani własnych, ani zewnętrznych. Dlatego nie wyświetlamy banera zgody.</li>
+    <li>Strona nie ładuje zasobów z zewnętrznych serwisów (czcionki, skrypty i biblioteki są hostowane razem ze stroną), więc odwiedziny nie są ujawniane podmiotom trzecim innym niż dostawca hostingu.</li>
+    <li>Pamięć przeglądarki (<span class="mono">sessionStorage</span> / <span class="mono">localStorage</span>) jest używana wyłącznie do przechowania Twojego tokena API na Twoim urządzeniu — <span class="mono">localStorage</span> tylko wtedy, gdy sam zaznaczysz opcję „Zapamiętaj token w tej przeglądarce". Token usuniesz przyciskiem „Rozłącz i usuń token" albo czyszcząc dane strony w przeglądarce.</li>
+  </ul>
+
+  <h2>5. Twoje prawa</h2>
+  <p>Przysługuje Ci prawo dostępu do danych, ich sprostowania, usunięcia, ograniczenia przetwarzania, przenoszenia oraz sprzeciwu wobec przetwarzania opartego na prawnie uzasadnionym interesie. Masz też prawo wnieść skargę do Prezesa Urzędu Ochrony Danych Osobowych (ul. Stawki 2, 00-193 Warszawa). Żądania kieruj na adres e-mail Administratora. Ze względu na to, że nie prowadzimy kont ani nie zapisujemy tokenów i danych produktów, w praktyce jedynymi danymi, które możemy zidentyfikować, są dane z korespondencji e-mail.</p>
+
+  <h2>6. Zautomatyzowane decyzje i profilowanie</h2>
+  <p>Nie podejmujemy decyzji opartych wyłącznie na zautomatyzowanym przetwarzaniu i nie profilujemy użytkowników.</p>
+
+  <h2>7. Bezpieczeństwo</h2>
+  <p>Połączenie ze stroną i z API BASE jest szyfrowane (HTTPS). Serwer proxy przepuszcza wyłącznie sześć metod API niezbędnych do eksportu i importu pól tekstowych; inne metody są odrzucane. Kod Narzędzia jest publiczny i możesz go zweryfikować w <a href="https://github.com/feedor24/opisy-z-base" target="_blank" rel="noopener">repozytorium</a>.</p>
+
+  <h2>8. Zmiany polityki</h2>
+  <p>Aktualna wersja polityki jest zawsze dostępna pod tym adresem. O istotnych zmianach (np. dodaniu narzędzia analitycznego) poinformujemy przez zmianę daty i wersji na górze dokumentu.</p>
+</main>
+
+<footer class="wrap">© 2026 Mediafy · MAMS · <a href="/">Strona główna</a> · <a href="/regulamin">Regulamin</a> · <a href="mailto:maciej.fidor@mediafy.com.pl">Kontakt</a></footer>
+</body>
+</html>

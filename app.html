@@ -3,14 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Opisy per marketplace z BASE — aplikacja</title>
+<title>Opisy z BASE — narzędzie</title>
 <meta name="description" content="Eksport i import nazw oraz opisów ofert z BASE (BaseLinker) dla wybranego marketplace'u i języka. Darmowe narzędzie od MAMS.">
 <meta name="robots" content="noindex">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Manrope:wght@700;800&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<link rel="stylesheet" href="fonts.css">
+<script src="vendor/xlsx.full.min.js"></script>
 <style>
 :root{
   --ink:#0F172A;--ink-soft:#334155;--muted:#64748B;--white:#fff;
@@ -149,6 +147,8 @@ td .new{color:var(--ink);display:block;white-space:pre-wrap;word-break:break-wor
 .logged{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
 .foot{text-align:center;color:var(--muted);font-size:13px;margin-top:40px}
 .foot a{color:var(--muted);text-decoration:underline}
+:focus-visible{outline:3px solid #818CF8;outline-offset:2px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
 .hide{display:none!important}
 label.cb{display:inline-flex;align-items:center;gap:8px;font-size:14px;color:var(--ink-soft);cursor:pointer}
 label.cb input{width:16px;height:16px;accent-color:var(--primary)}
@@ -191,7 +191,7 @@ label.cb input{width:16px;height:16px;accent-color:var(--primary)}
         <label class="cb"><input type="checkbox" id="remember"> Zapamiętaj token w tej przeglądarce</label>
         <a href="/#token" style="font-size:13px">Nie masz tokena? Instrukcja krok po kroku →</a>
       </div>
-      <p class="hint">Token leci prosto do API BASE przez nasz serwer i <b>nie jest nigdzie zapisywany</b>. Bez zaznaczonej opcji zniknie po zamknięciu karty.</p>
+      <p class="hint">Token leci prosto do API BASE przez nasz serwer i <b>nie jest nigdzie zapisywany</b>. Bez zaznaczonej opcji zniknie po zamknięciu karty. Łącząc się, akceptujesz <a href="/regulamin" target="_blank">regulamin</a>.</p>
     </div>
     <div id="token-err" class="note err hide"></div>
     <div id="token-ok" class="logged hide">
@@ -307,7 +307,7 @@ label.cb input{width:16px;height:16px;accent-color:var(--primary)}
     </div>
   </div>
 
-  <p class="foot">Darmowe narzędzie od <a href="https://mams.mediafy.com.pl" target="_blank" rel="noopener">MAMS</a> · produkt Mediafy · <a href="/#faq">FAQ i bezpieczeństwo</a></p>
+  <p class="foot">Darmowe narzędzie od <a href="https://mams.mediafy.com.pl" target="_blank" rel="noopener">MAMS</a> · produkt Mediafy · <a href="/#faq">FAQ</a> · <a href="/regulamin">Regulamin</a> · <a href="/polityka-prywatnosci">Polityka prywatności</a></p>
 </div>
 
 <!-- modal potwierdzenia -->
@@ -315,7 +315,7 @@ label.cb input{width:16px;height:16px;accent-color:var(--primary)}
   <div class="modal">
     <h3>Zapisać zmiany w BASE?</h3>
     <p id="modal-text"></p>
-    <p>Zapis jest <b>nieodwracalny</b> po stronie BASE. Kopia zapasowa została pobrana automatycznie — w razie czego wgrasz ją tym samym importem.</p>
+    <p>Zapis jest <b>nieodwracalny</b> po stronie BASE. Kopia zapasowa została pobrana automatycznie — w razie czego wgrasz ją tym samym importem. Zapis wykonujesz na własnym koncie i na własną odpowiedzialność (<a href="/regulamin" target="_blank">§ 6 regulaminu</a>).</p>
     <label class="cb"><input type="checkbox" id="modal-ack"> Rozumiem, mam kopię zapasową</label>
     <div class="row">
       <button class="btn btn-ghost" id="modal-cancel">Anuluj</button>
